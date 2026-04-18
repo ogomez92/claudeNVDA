@@ -1,0 +1,6 @@
+- Initial release: Claude AI integration replacing Gemini
+- Support Claude Opus 4.7, Sonnet 4.6, and Haiku 4.5 via the Messages API
+- Two auth providers: Anthropic direct and Amazon Bedrock (bearer token)
+- Bedrock key and Anthropic key stored separately, each DPAPI-encrypted
+- Video analysis now samples frames (Claude has no native video ingest)
+- Configurable video / summarize / summarize-speech prompts retained from GemVDA

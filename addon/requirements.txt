@@ -1,0 +1,22 @@
+# ClauVDA NVDA Add-on Dependencies
+# Install with: uv pip install -r requirements.txt --target lib64
+
+# Anthropic SDK (Claude Messages API + AnthropicBedrock client)
+anthropic>=0.96.0
+
+# AWS SDK for Amazon Bedrock bearer-token auth
+boto3>=1.42.0
+
+# Image processing
+Pillow>=10.0.0
+
+# Screenshot capture
+mss>=9.0.0
+
+# Timezone data (NVDA's Python may not bundle zoneinfo)
+tzdata>=2024.1
+
+# Video capture + frame extraction
+numpy>=2.0.0
+imageio>=2.30.0
+imageio-ffmpeg>=0.6.0

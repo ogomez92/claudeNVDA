@@ -1,0 +1,317 @@
+# GemVDA NVDA Add-on - French Translation
+# Copyright (C) 2024 NVDA Community
+# This file is distributed under the same license as the GemVDA add-on.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: GemVDA NVDA Add-on 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-01-01 00:00+0000\n"
+"PO-Revision-Date: 2024-01-01 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: French\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. Translators: Title of the main Gemini dialog
+msgid "Gemini AI"
+msgstr "Gemini AI"
+
+#. Translators: Label for model selection dropdown
+msgid "&Model:"
+msgstr "&Modele:"
+
+#. Translators: Label for system prompt section
+msgid "S&ystem prompt:"
+msgstr "Invite s&ysteme:"
+
+#. Translators: Label for conversation history
+msgid "&History:"
+msgstr "&Historique:"
+
+#. Translators: Label for user message input
+msgid "&Message:"
+msgstr "&Message:"
+
+#. Translators: Button to send message
+msgid "&Send"
+msgstr "&Envoyer"
+
+#. Translators: Button to attach image
+msgid "Attach &Image..."
+msgstr "Joindre une &image..."
+
+#. Translators: Button to clear conversation
+msgid "&Clear"
+msgstr "&Effacer"
+
+#. Translators: Button to copy last response
+msgid "C&opy Response"
+msgstr "C&opier la reponse"
+
+#. Translators: Button to close dialog
+msgid "Close"
+msgstr "Fermer"
+
+#. Translators: Error message prefix
+msgid "Error: {error}"
+msgstr "Erreur: {error}"
+
+#. Translators: Label for user messages in history
+msgid "You"
+msgstr "Vous"
+
+#. Translators: Label for Gemini responses in history
+msgid "Gemini"
+msgstr "Gemini"
+
+#. Translators: Indicator for attached images
+msgid "[{count} image(s)] {text}"
+msgstr "[{count} image(s)] {text}"
+
+#. Translators: Title of image file selection dialog
+msgid "Select Image"
+msgstr "Selectionner une image"
+
+#. Translators: File filter for image selection
+msgid "Image files (*.png;*.jpg;*.jpeg;*.gif;*.webp)|*.png;*.jpg;*.jpeg;*.gif;*.webp"
+msgstr "Fichiers image (*.png;*.jpg;*.jpeg;*.gif;*.webp)|*.png;*.jpg;*.jpeg;*.gif;*.webp"
+
+#. Translators: Label showing number of attached images
+msgid "{count} image(s) attached"
+msgstr "{count} image(s) jointe(s)"
+
+#. Translators: Message when conversation is cleared
+msgid "Conversation cleared"
+msgstr "Conversation effacee"
+
+#. Translators: Message when response is copied
+msgid "Response copied to clipboard"
+msgstr "Reponse copiee dans le presse-papiers"
+
+#. Translators: Message when there's no response to copy
+msgid "No response to copy"
+msgstr "Aucune reponse a copier"
+
+#. Translators: Title of API key configuration dialog
+msgid "Gemini API Key"
+msgstr "Cle API Gemini"
+
+#. Translators: Instructions for getting API key
+msgid "Enter your Gemini API key.\nGet one at: https://aistudio.google.com/apikey"
+msgstr "Entrez votre cle API Gemini.\nObtenez-en une sur: https://aistudio.google.com/apikey"
+
+#. Translators: Shows where API key is currently stored
+msgid "Current key source: {source}"
+msgstr "Source de cle actuelle: {source}"
+
+#. Translators: Label for API key input field
+msgid "API &Key:"
+msgstr "&Cle API:"
+
+#. Translators: Button to delete saved API key
+msgid "&Delete Key"
+msgstr "&Supprimer la cle"
+
+#. Translators: Confirmation that API key was saved
+msgid "API key saved"
+msgstr "Cle API enregistree"
+
+#. Translators: Error saving API key
+msgid "Failed to save API key"
+msgstr "Echec de l'enregistrement de la cle API"
+
+#. Translators: Confirmation that API key was deleted
+msgid "API key deleted"
+msgstr "Cle API supprimee"
+
+#. Translators: Error deleting API key
+msgid "Failed to delete API key"
+msgstr "Echec de la suppression de la cle API"
+
+#. Translators: Label for API key configuration button
+msgid "Configure API &Key..."
+msgstr "Configurer la &cle API..."
+
+#. Translators: Label for default model selection
+msgid "Default &model:"
+msgstr "&Modele par defaut:"
+
+#. Translators: Label for temperature setting
+msgid "&Temperature (0-200):"
+msgstr "&Temperature (0-200):"
+
+#. Translators: Label for max output tokens setting
+msgid "Ma&x output tokens:"
+msgstr "Tokens de sortie ma&x:"
+
+#. Translators: Checkbox for streaming responses
+msgid "&Stream responses"
+msgstr "&Reponses en streaming"
+
+#. Translators: Checkbox for conversation mode
+msgid "&Conversation mode (include history)"
+msgstr "Mode &conversation (inclure l'historique)"
+
+#. Translators: Checkbox for saving system prompt
+msgid "&Remember system prompt"
+msgstr "&Retenir l'invite systeme"
+
+#. Translators: Checkbox for blocking escape key
+msgid "&Block Escape key in dialog"
+msgstr "&Bloquer la touche Echap dans le dialogue"
+
+#. Translators: Checkbox for filtering markdown from responses
+msgid "&Filter markdown from responses"
+msgstr "&Filtrer le markdown des reponses"
+
+#. Translators: Label for feedback settings group
+msgid "Sound Feedback"
+msgstr "Retour sonore"
+
+#. Translators: Checkbox for request sent sound
+msgid "Play sound when request &sent"
+msgstr "Jouer un son a l'&envoi de la requete"
+
+#. Translators: Checkbox for response pending sound
+msgid "Play sound while &waiting"
+msgstr "Jouer un son pendant l'&attente"
+
+#. Translators: Checkbox for response received sound
+msgid "Play sound when response &received"
+msgstr "Jouer un son a la &reception de la reponse"
+
+#. Translators: Menu item to open Gemini dialog
+msgid "Open Gemini &Dialog...\tNVDA+G"
+msgstr "Ouvrir le &dialogue Gemini...\tNVDA+G"
+
+#. Translators: Menu item to open settings
+msgid "&Settings..."
+msgstr "&Parametres..."
+
+#. Translators: Menu item to open API key page
+msgid "Get &API Key (web)..."
+msgstr "Obtenir une cle &API (web)..."
+
+#. Translators: System tray menu item label
+msgid "&Gemini"
+msgstr "&Gemini"
+
+#. Translators: Error when google-genai is not installed
+msgid "Google GenAI library not installed. Please run install_deps.py in the add-on folder."
+msgstr "Bibliotheque Google GenAI non installee. Veuillez executer install_deps.py dans le dossier de l'extension."
+
+#. Translators: Description for show dialog script
+msgid "Show Gemini AI dialog"
+msgstr "Afficher le dialogue Gemini AI"
+
+#. Translators: Description for describe screen script
+msgid "Describe the entire screen using Gemini"
+msgstr "Decrire l'ecran entier avec Gemini"
+
+#. Translators: Message while capturing screenshot
+msgid "Capturing screen..."
+msgstr "Capture de l'ecran..."
+
+#. Translators: Error when screenshot fails
+msgid "Failed to capture screenshot"
+msgstr "Echec de la capture d'ecran"
+
+#. Translators: Description for describe object script
+msgid "Describe the navigator object using Gemini"
+msgstr "Decrire l'objet du navigateur avec Gemini"
+
+#. Translators: Message while capturing object
+msgid "Capturing object..."
+msgstr "Capture de l'objet..."
+
+#. Translators: Error when object capture fails
+msgid "Failed to capture object"
+msgstr "Echec de la capture de l'objet"
+
+#. Translators: Label for video analysis prompt text field
+msgid "&Video analysis prompt:"
+msgstr "Prompt d'analyse &video:"
+
+#. Translators: Default video analysis prompt sent to the AI model
+msgid "Describe this video in detail, but concise. Get as much information as you can and if there is any important text in the video read it."
+msgstr "Decrivez cette video en detail, mais de maniere concise. Obtenez autant d'informations que possible et s'il y a du texte important dans la video, lisez-le."
+
+#. Translators: Error message when no API key is configured
+msgid "No Gemini API key configured. Please add your API key in the settings."
+msgstr "Aucune cle API Gemini configuree. Veuillez ajouter votre cle API dans les parametres."
+
+#. Translators: Description for video capture toggle script
+msgid "Start or stop video recording for Gemini analysis"
+msgstr "Demarrer ou arreter l'enregistrement video pour l'analyse Gemini"
+
+#. Translators: Message while uploading video
+msgid "Uploading video..."
+msgstr "Telechargement de la video..."
+
+#. Translators: Message when video processing failed
+msgid "Video processing failed"
+msgstr "Echec du traitement video"
+
+#. Translators: Message while analyzing video
+msgid "Analyzing video..."
+msgstr "Analyse de la video..."
+
+#. Translators: Error when video capture dependencies not available
+msgid "Video capture not available. Missing dependencies."
+msgstr "Capture video non disponible. Dependances manquantes."
+
+#. Translators: Message when stopping video recording
+msgid "Stopping recording..."
+msgstr "Arret de l'enregistrement..."
+
+#. Translators: Message when video saved successfully
+msgid "Video saved. Sending to Gemini for analysis..."
+msgstr "Video enregistree. Envoi a Gemini pour analyse..."
+
+#. Translators: Error when video save fails
+msgid "Failed to save video"
+msgstr "Echec de l'enregistrement de la video"
+
+#. Translators: Message when video recording starts
+msgid "Recording started. Press NVDA+V again to stop."
+msgstr "Enregistrement demarre. Appuyez a nouveau sur NVDA+V pour arreter."
+
+#. Translators: Error when video recording fails to start
+msgid "Failed to start recording"
+msgstr "Echec du demarrage de l'enregistrement"
+
+#. Translators: Error during video analysis
+msgid "Video analysis failed: {error}"
+msgstr "Echec de l'analyse video: {error}"
+
+#. Translators: Description for summarize selection script
+msgid "Summarize selected text using Gemini"
+msgstr "Resumer le texte selectionne avec Gemini"
+
+#. Translators: Label for summarize selection prompt text field
+msgid "S&ummarize selection prompt:"
+msgstr "Invite de res&ume de selection:"
+
+#. Translators: Default prompt used when summarizing selected text with AI
+msgid "Summarize the key points of the following text in a clear and concise manner:"
+msgstr "Resumez les points cles du texte suivant de maniere claire et concise:"
+
+#. Translators: Error when no text is selected for summarization
+msgid "No text selected"
+msgstr "Aucun texte selectionne"
+
+#. Translators: Message while summarizing text
+msgid "Summarizing..."
+msgstr "Resume en cours..."
+
+#. Translators: Error during text summarization
+msgid "Summarization failed: {error}"
+msgstr "Echec du resume: {error}"
+
+#. Translators: Message when AI returns no response
+msgid "No response from AI"
+msgstr "Aucune reponse de l'IA"
