@@ -22,9 +22,14 @@ jobs:
       - name: Install build dependencies
         run: |
           python -m pip install --upgrade pip wheel
-          pip install scons markdown pre-commit
+          pip install scons markdown pre-commit uv
           sudo apt-get update -y
           sudo apt-get install -y gettext
+
+      - name: Vendor add-on runtime dependencies
+        run: |
+          uv pip install --python 3.13 --target addon/lib64 --python-platform x86_64-pc-windows-msvc -r addon/requirements.txt
+          uv pip install --python 3.13 --target addon/lib32 --python-platform i686-pc-windows-msvc   -r addon/requirements.txt
 
       - name: Build add-on
         run: scons . && scons pot
