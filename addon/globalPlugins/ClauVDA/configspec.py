@@ -179,15 +179,13 @@ def get_safe_conf():
     """Get the ClauVDA config section with safe fallback to spec defaults.
 
     Use this instead of config.conf["ClauVDA"] to avoid KeyError when
-    NVDA's config profiles don't have the expected keys.
+    NVDA's config profiles don't have the expected keys. The section is
+    created on demand so writes always persist.
     """
     import config
     try:
         section = config.conf["ClauVDA"]
     except KeyError:
-        return _SafeSection(type('Empty', (), {
-            '__getitem__': lambda s, k: (_ for _ in ()).throw(KeyError(k)),
-            '__setitem__': lambda s, k, v: None,
-            '__contains__': lambda s, k: False,
-        })(), _DEFAULTS, _TYPES)
+        config.conf["ClauVDA"] = {}
+        section = config.conf["ClauVDA"]
     return _SafeSection(section, _DEFAULTS, _TYPES)

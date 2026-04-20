@@ -24,7 +24,7 @@ addon_info = AddonInfo(
 	addon_description=_("""Comprehensive Anthropic Claude AI capabilities integrated into NVDA.
 Supports Claude Opus 4.7, Sonnet 4.6, and Haiku 4.5 for chat, image description, and more."""),
 	# version
-	addon_version="1.1.2",
+	addon_version="1.1.3",
 	# Brief changelog for this version
 	# Translators: what's new content for the add-on version to be shown in the add-on store
 	addon_changelog=_("""Initial release with Anthropic Claude AI integration."""),
