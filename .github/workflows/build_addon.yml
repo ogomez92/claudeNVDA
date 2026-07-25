@@ -26,19 +26,49 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y gettext
 
+      # The ABI tag baked into each .pyd filename must match the interpreter
+      # NVDA runs, or CPython silently ignores the extension module and the
+      # import fails with a bare "No module named 'pydantic_core._pydantic_core'".
+      #   NVDA 2026.1+          -> 64-bit process, Python 3.13 -> lib64
+      #   NVDA 2024.1 - 2025.x  -> 32-bit process, Python 3.11 -> lib32
+      # consts.py selects the directory at runtime by pointer size.
       - name: Vendor add-on runtime dependencies
         run: |
-          uv pip install --python 3.11 --target addon/lib64 --python-platform x86_64-pc-windows-msvc -r addon/requirements.txt
+          uv pip install --python 3.13 --target addon/lib64 --python-platform x86_64-pc-windows-msvc -r addon/requirements.txt
           uv pip install --python 3.11 --target addon/lib32 --python-platform i686-pc-windows-msvc   -r addon/requirements.txt
 
       - name: Vendor stdlib zoneinfo (NVDA strips it)
         run: |
-          python -c "
-          import os, shutil, zoneinfo
+          cat > vendor_zoneinfo.py <<'PY'
+          import os, shutil, sys, zoneinfo
           src = os.path.dirname(zoneinfo.__file__)
-          for dst in ['addon/lib32/zoneinfo', 'addon/lib64/zoneinfo']:
-              shutil.copytree(src, dst, ignore=shutil.ignore_patterns('*.so', '*.pyd', '__pycache__'))
-          "
+          dst = sys.argv[1]
+          shutil.rmtree(dst, ignore_errors=True)
+          shutil.copytree(src, dst, ignore=shutil.ignore_patterns('*.so', '*.pyd', '__pycache__'))
+          print(f"vendored zoneinfo from {src} -> {dst}")
+          PY
+          uv run --no-project --python 3.13 python vendor_zoneinfo.py addon/lib64/zoneinfo
+          uv run --no-project --python 3.11 python vendor_zoneinfo.py addon/lib32/zoneinfo
+          rm vendor_zoneinfo.py
+
+      - name: Verify vendored ABI tags
+        run: |
+          python - <<'PY'
+          import pathlib, sys
+          expected = {'lib64': 'cp313-win_amd64', 'lib32': 'cp311-win32'}
+          bad = []
+          for lib, tag in expected.items():
+              pyds = list(pathlib.Path('addon', lib).rglob('*.pyd'))
+              if not pyds:
+                  bad.append(f"{lib}: no .pyd files vendored at all")
+                  continue
+              wrong = [p for p in pyds if not p.name.endswith(f".{tag}.pyd")]
+              print(f"{lib}: {len(pyds)} extension modules, {len(wrong)} mismatched (want {tag})")
+              bad += [f"{lib}: {p.name} is not {tag}" for p in wrong]
+          if bad:
+              sys.exit("ABI mismatch in vendored dependencies:\n  " + "\n  ".join(bad))
+          print("all vendored extension modules match their target interpreter")
+          PY
 
       - name: Build add-on
         run: scons . && scons pot

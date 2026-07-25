@@ -3,7 +3,9 @@
 
 import os
 import struct
+import sys
 import globalVars
+from logHandler import log
 
 # Directory paths
 ADDON_DIR = os.path.dirname(__file__)
@@ -12,6 +14,47 @@ ADDON_ROOT = os.path.dirname(PLUGIN_DIR)
 DATA_DIR = os.path.join(globalVars.appArgs.configPath, "ClauVDA")
 _arch = "lib64" if struct.calcsize("P") == 8 else "lib32"
 LIBS_DIR = os.path.join(ADDON_ROOT, _arch)
+
+# ABI tag CPython expects on this interpreter, e.g. ".cp313-win_amd64.pyd".
+EXPECTED_PYD_SUFFIX = (
+    f".cp{sys.version_info.major}{sys.version_info.minor}"
+    f"-{'win_amd64' if struct.calcsize('P') == 8 else 'win32'}.pyd"
+)
+
+
+def _diagnose_libs() -> str | None:
+    """Return why LIBS_DIR is unusable, or None if it matches this interpreter.
+
+    NVDA's bundled Python moved from 3.11/32-bit (2024.1-2025.x) to 3.13/64-bit
+    (2026.1+). C extensions carry that ABI tag in their filename and CPython
+    silently skips any that don't match, so a stale build fails as a bare
+    "No module named 'pydantic_core._pydantic_core'" with nothing pointing at
+    the real cause. Check up front so the log says what actually went wrong.
+    """
+    if not os.path.isdir(LIBS_DIR):
+        return f"bundled dependency directory is missing: {LIBS_DIR}"
+    probe_dir = os.path.join(LIBS_DIR, "pydantic_core")
+    try:
+        found = [name for name in os.listdir(probe_dir) if name.endswith(".pyd")]
+    except OSError:
+        return f"bundled dependencies are incomplete: {probe_dir} is missing"
+    if not found:
+        return f"no compiled extension modules found in {probe_dir}"
+    if any(name.endswith(EXPECTED_PYD_SUFFIX) for name in found):
+        return None
+    return (
+        f"bundled dependencies in {_arch} were built for a different Python: found "
+        f"{', '.join(sorted(found))} but this NVDA runs Python "
+        f"{sys.version_info.major}.{sys.version_info.minor} "
+        f"{struct.calcsize('P') * 8}-bit, which needs *{EXPECTED_PYD_SUFFIX}. "
+        "Install an add-on build that matches this NVDA version."
+    )
+
+
+# None when the vendored libraries match the running interpreter.
+LIBS_PROBLEM = _diagnose_libs()
+if LIBS_PROBLEM:
+    log.error(f"ClauVDA dependencies unusable: {LIBS_PROBLEM}")
 
 # Create data directory if it doesn't exist
 if not os.path.exists(DATA_DIR):

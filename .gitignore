@@ -29,9 +29,11 @@ venv/
 /addon/manifest.ini
 
 # Bundled Python dependencies.
-# NVDA ships Python 3.11 32-bit, so C extensions must match that ABI.
+# C extensions must match the ABI of the interpreter NVDA runs:
+#   NVDA 2026.1+         -> 64-bit, Python 3.13 -> addon/lib64 (cp313-win_amd64)
+#   NVDA 2024.1 - 2025.x -> 32-bit, Python 3.11 -> addon/lib32 (cp311-win32)
 # Install locally via:
-#   uv pip install --python 3.11 --target addon/lib64 --python-platform x86_64-pc-windows-msvc -r addon/requirements.txt
+#   uv pip install --python 3.13 --target addon/lib64 --python-platform x86_64-pc-windows-msvc -r addon/requirements.txt
 #   uv pip install --python 3.11 --target addon/lib32 --python-platform i686-pc-windows-msvc   -r addon/requirements.txt
 # They are intentionally NOT committed because they are large and
 # platform-specific.

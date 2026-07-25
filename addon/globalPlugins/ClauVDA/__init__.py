@@ -26,6 +26,7 @@ addonHandler.initTranslation()
 from .consts import (
     DATA_DIR,
     LIBS_DIR,
+    LIBS_PROBLEM,
     ADDON_DIR,
     NO_API_KEY_MSG,
     CLAUDE_MODELS,
@@ -77,7 +78,10 @@ except Exception as e:
     import traceback
     log.error(f"anthropic import failed: {e}")
     log.error(f"Full traceback:\n{traceback.format_exc()}")
-    log.warning("anthropic SDK not found. Bundled libraries may be missing or corrupted.")
+    if LIBS_PROBLEM:
+        log.warning(f"anthropic SDK unusable: {LIBS_PROBLEM}")
+    else:
+        log.warning("anthropic SDK not found. Bundled libraries may be missing or corrupted.")
 
 
 def _resolve_bedrock_region(configured: str | None) -> str:
