@@ -2,7 +2,7 @@
 
 ## Summary
 
-ClauVDA integrates Anthropic's Claude AI directly into NVDA, providing blind and visually impaired users with powerful AI assistance. The add-on supports the current Claude line-up — Opus 4.7, Sonnet 4.6, and Haiku 4.5 — for chat, image description, screen-recording analysis, and more. Both the direct Anthropic API and Amazon Bedrock (via bearer-token API keys) are supported as authentication providers.
+ClauVDA integrates Anthropic's Claude AI directly into NVDA, providing blind and visually impaired users with powerful AI assistance. The add-on supports the current Claude line-up — Opus 5, Sonnet 5, and Haiku 4.5 — for chat, image description, screen-recording analysis, and more. Both the direct Anthropic API and Amazon Bedrock (via bearer-token API keys) are supported as authentication providers.
 
 ## Features
 
@@ -84,7 +84,9 @@ Access settings via NVDA menu > Preferences > Settings > Claude AI:
 * **API provider**: Anthropic direct or Amazon Bedrock
 * **AWS region**: Bedrock region (ignored when using the Anthropic API directly)
 * **Default Model**: Claude model to use by default
-* **Temperature (0-100)**: Response randomness (0 = focused, 100 = creative)
+* **Temperature (0-100)**: Response randomness (0 = focused, 100 = creative).
+  Applies to Haiku 4.5 only — Opus 5 and Sonnet 5 do not accept a temperature,
+  so the setting is ignored when one of them is selected.
 * **Maximum Output Tokens**: Maximum length of responses
 * **Stream Responses**: Display/speak responses as they arrive
 * **Conversation Mode**: Include chat history for context
@@ -100,9 +102,9 @@ Access settings via NVDA menu > Preferences > Settings > Claude AI:
 
 ## Available Models
 
-* **Claude Opus 4.7** — Most capable, extended thinking
-* **Claude Sonnet 4.6** — Balanced for everyday use, extended thinking
-* **Claude Haiku 4.5** — Fastest, cost-efficient
+* **Claude Opus 5** — Most capable, 1M token context, extended thinking
+* **Claude Sonnet 5** — Balanced for everyday use, 1M token context, extended thinking
+* **Claude Haiku 4.5** — Fastest and cheapest, 200K token context
 
 All three support image input.
 
@@ -145,7 +147,9 @@ Increase the "Maximum Output Tokens" setting.
 
 ### Responses are too random
 
-Lower the Temperature setting.
+Lower the Temperature setting. This has no effect on Opus 5 or Sonnet 5, which
+do not accept a temperature — ask for the tone you want in the prompt or the
+system prompt instead.
 
 ## Privacy Notice
 

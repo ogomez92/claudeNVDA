@@ -2,7 +2,7 @@
 
 ## Summary
 
-ClauVDA integrates Anthropic's Claude AI directly into NVDA, providing blind and visually impaired users with powerful AI assistance. The add-on supports the current Claude line-up — Opus 4.7, Sonnet 4.6, and Haiku 4.5 — for chat, image description, screen-recording analysis, and more. Both the direct Anthropic API and Amazon Bedrock (via bearer-token API keys) are supported as authentication providers.
+ClauVDA integrates Anthropic's Claude AI directly into NVDA, providing blind and visually impaired users with powerful AI assistance. The add-on supports the current Claude line-up — Opus 5, Sonnet 5, and Haiku 4.5 — for chat, image description, screen-recording analysis, and more. Both the direct Anthropic API and Amazon Bedrock (via bearer-token API keys) are supported as authentication providers.
 
 ## Features
 
@@ -84,7 +84,9 @@ Access settings via NVDA menu > Preferences > Settings > Claude AI:
 * **API provider**: Anthropic direct or Amazon Bedrock
 * **AWS region**: Bedrock region (ignored when using the Anthropic API directly)
 * **Default Model**: Claude model to use by default
-* **Temperature (0-100)**: Response randomness (0 = focused, 100 = creative)
+* **Temperature (0-100)**: Response randomness (0 = focused, 100 = creative).
+  Applies to Haiku 4.5 only — Opus 5 and Sonnet 5 do not accept a temperature,
+  so the setting is ignored when one of them is selected.
 * **Maximum Output Tokens**: Maximum length of responses
 * **Stream Responses**: Display/speak responses as they arrive
 * **Conversation Mode**: Include chat history for context
@@ -100,9 +102,9 @@ Access settings via NVDA menu > Preferences > Settings > Claude AI:
 
 ## Available Models
 
-* **Claude Opus 4.7** — Most capable, extended thinking
-* **Claude Sonnet 4.6** — Balanced for everyday use, extended thinking
-* **Claude Haiku 4.5** — Fastest, cost-efficient
+* **Claude Opus 5** — Most capable, 1M token context, extended thinking
+* **Claude Sonnet 5** — Balanced for everyday use, 1M token context, extended thinking
+* **Claude Haiku 4.5** — Fastest and cheapest, 200K token context
 
 All three support image input.
 
@@ -145,7 +147,9 @@ Increase the "Maximum Output Tokens" setting.
 
 ### Responses are too random
 
-Lower the Temperature setting.
+Lower the Temperature setting. This has no effect on Opus 5 or Sonnet 5, which
+do not accept a temperature — ask for the tone you want in the prompt or the
+system prompt instead.
 
 ## Privacy Notice
 
@@ -153,6 +157,44 @@ Lower the Temperature setting.
 * API keys are stored locally, encrypted with Windows DPAPI
 * No data is shared with the add-on developer
 * Review the [Anthropic usage policies](https://www.anthropic.com/legal/aup) and/or your AWS Bedrock agreement for details
+
+## Building from source
+
+The bundled Python dependencies (Anthropic SDK, boto3, Pillow, mss, imageio,
+etc.) are **not** checked into this repository — they are large, platform
+specific, and easy to reproduce with `uv`. After cloning you must install them
+into both `addon/lib32` and `addon/lib64` before building, otherwise the
+generated `.nvda-addon` will not be able to import `anthropic` at runtime.
+
+```bash
+# Clone
+git clone https://github.com/ogomez92/claudeNVDA.git
+cd claudeNVDA
+
+# Create a local build venv and install build tooling
+uv venv
+uv sync
+
+# Install the add-on's runtime dependencies into BOTH lib dirs.
+# NVDA runs on 64-bit Python by default; 32-bit is kept for older setups.
+uv pip install --python 3.13 --target addon/lib64 \
+    --python-platform x86_64-pc-windows-msvc \
+    -r addon/requirements.txt
+
+uv pip install --python 3.13 --target addon/lib32 \
+    --python-platform i686-pc-windows-msvc \
+    -r addon/requirements.txt
+
+# Build the .nvda-addon bundle
+uv run scons .
+```
+
+The build produces `ClauVDA-<version>.nvda-addon` in the repo root; install it
+in NVDA via *Tools → Add-on store → Install from external source*.
+
+> **Note**: Without running the two `uv pip install --target addon/lib*`
+> commands, scons will still build an `.nvda-addon`, but NVDA will log
+> `anthropic import failed` on load and the add-on will refuse to start.
 
 ## Support
 

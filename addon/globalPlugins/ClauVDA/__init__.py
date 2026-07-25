@@ -498,6 +498,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 
         # Register configuration
         config.conf.spec["ClauVDA"] = confSpecs
+        self._migrate_model_settings()
 
         # Register settings panel
         NVDASettingsDialog.categoryClasses.append(ClauVDASettingsPanel)
@@ -523,6 +524,25 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         self._create_menu()
 
         log.info("ClauVDA add-on initialized")
+
+    def _migrate_model_settings(self):
+        """Point saved model settings at models this version still offers.
+
+        A config written by an older add-on version can name a model that has
+        since been replaced; sending that ID would fail with a 404.
+        """
+        from .consts import normalize_model_id
+
+        conf = get_safe_conf()
+        for key in ("model", "modelVision"):
+            try:
+                saved = conf[key]
+            except Exception:
+                continue
+            current = normalize_model_id(saved)
+            if current != saved:
+                conf[key] = current
+                log.info(f"ClauVDA: migrated {key} from {saved} to {current}")
 
     def _patch_speech(self):
         """Monkey-patch speech.speak to capture the last spoken text."""
@@ -924,7 +944,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 
                 response = client.messages.create(
                     model=resolved_id,
-                    max_tokens=get_safe_conf()["maxOutputTokens"],
+                    max_tokens=_capped_max_tokens(model),
                     messages=[{"role": "user", "content": user_content}],
                 )
 
@@ -1085,7 +1105,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             try:
                 response = client.messages.create(
                     model=resolved_id,
-                    max_tokens=get_safe_conf()["maxOutputTokens"],
+                    max_tokens=_capped_max_tokens(model),
                     messages=[{"role": "user", "content": full_prompt}],
                 )
                 result_text = _extract_text(response) or _("No response from AI")
@@ -1104,6 +1124,14 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 
         thread = threading.Thread(target=do_summarize, daemon=True)
         thread.start()
+
+
+def _capped_max_tokens(model) -> int:
+    """Clamp the configured output limit to what the model actually allows."""
+    configured = get_safe_conf()["maxOutputTokens"]
+    if model is None:
+        return configured
+    return min(configured, model.max_output_tokens)
 
 
 def _extract_text(response) -> str:

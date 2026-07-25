@@ -60,6 +60,7 @@ class Model:
         vision: bool = False,
         preview: bool = False,
         thinking: bool = False,
+        sampling: bool = True,
     ):
         self.id = id
         self.name = name
@@ -70,6 +71,9 @@ class Model:
         self.vision = vision
         self.preview = preview
         self.thinking = thinking
+        # False when the model rejects sampling parameters (temperature, top_p,
+        # top_k). Opus 5 and Sonnet 5 return HTTP 400 if temperature is sent.
+        self.sampling = sampling
 
     def resolve_id(self, provider: str) -> str:
         """Return the right model identifier for the given provider.
@@ -93,40 +97,55 @@ class Model:
         return f"Model({self.id}, vision={self.vision})"
 
 
-# Available Claude models (as of April 2026)
+# Available Claude models (as of July 2026)
 # Bedrock IDs use the "global." inference profile prefix.
 CLAUDE_MODELS = [
     Model(
-        id="claude-opus-4-7",
-        name="Claude Opus 4.7",
-        bedrock_id="global.anthropic.claude-opus-4-7-v1",
-        context_window=200000,
-        max_output_tokens=32000,
+        id="claude-opus-5",
+        name="Claude Opus 5",
+        bedrock_id="global.anthropic.claude-opus-5-v1",
+        context_window=1000000,
+        max_output_tokens=128000,
         vision=True,
         thinking=True,
+        sampling=False,
     ),
     Model(
-        id="claude-sonnet-4-6",
-        name="Claude Sonnet 4.6",
-        bedrock_id="global.anthropic.claude-sonnet-4-6-v1",
-        context_window=200000,
-        max_output_tokens=16000,
+        id="claude-sonnet-5",
+        name="Claude Sonnet 5",
+        bedrock_id="global.anthropic.claude-sonnet-5-v1",
+        context_window=1000000,
+        max_output_tokens=128000,
         vision=True,
         thinking=True,
+        sampling=False,
     ),
     Model(
-        id="claude-haiku-4-5-20251001",
+        id="claude-haiku-4-5",
         name="Claude Haiku 4.5",
         bedrock_id="global.anthropic.claude-haiku-4-5-v1",
         context_window=200000,
-        max_output_tokens=8192,
+        max_output_tokens=64000,
         vision=True,
+        thinking=True,
     ),
 ]
 
 # Default model
-DEFAULT_MODEL = "claude-sonnet-4-6"
-DEFAULT_VISION_MODEL = "claude-sonnet-4-6"
+DEFAULT_MODEL = "claude-opus-5"
+DEFAULT_VISION_MODEL = "claude-opus-5"
+
+# Model IDs from earlier add-on versions, mapped onto their replacements so a
+# saved setting keeps working after an upgrade. Anything unknown falls back to
+# DEFAULT_MODEL.
+LEGACY_MODEL_IDS = {
+    "claude-opus-4-7": "claude-opus-5",
+    "claude-opus-4-6": "claude-opus-5",
+    "claude-opus-4-5": "claude-opus-5",
+    "claude-sonnet-4-6": "claude-sonnet-5",
+    "claude-sonnet-4-5": "claude-sonnet-5",
+    "claude-haiku-4-5-20251001": "claude-haiku-4-5",
+}
 
 
 # Model lookup helpers
@@ -136,6 +155,13 @@ def get_model_by_id(model_id: str) -> Model | None:
         if model.id == model_id:
             return model
     return None
+
+
+def normalize_model_id(model_id: str) -> str:
+    """Map a saved model ID onto one this version actually offers."""
+    if get_model_by_id(model_id):
+        return model_id
+    return LEGACY_MODEL_IDS.get(model_id, DEFAULT_MODEL)
 
 
 def get_model_choices() -> list[tuple[str, str]]:

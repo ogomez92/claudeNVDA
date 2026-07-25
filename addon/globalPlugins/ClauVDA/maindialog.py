@@ -120,7 +120,7 @@ class CompletionThread(threading.Thread):
         messages: list,
         system_prompt: str | None,
         max_tokens: int,
-        temperature: float,
+        temperature: float | None,
         stream: bool = True,
     ):
         threading.Thread.__init__(self, daemon=True)
@@ -139,8 +139,11 @@ class CompletionThread(threading.Thread):
             "model": self._model_id,
             "messages": self._messages,
             "max_tokens": self._max_tokens,
-            "temperature": self._temperature,
         }
+        # Opus 5 and Sonnet 5 reject sampling parameters, so temperature is
+        # only sent for models that still accept it.
+        if self._temperature is not None:
+            kwargs["temperature"] = self._temperature
         if self._system_prompt:
             kwargs["system"] = self._system_prompt
         return kwargs
@@ -602,7 +605,7 @@ class ClaudeDialog(wx.Dialog):
             messages=messages,
             system_prompt=system_prompt,
             max_tokens=min(get_safe_conf()["maxOutputTokens"], model.max_output_tokens),
-            temperature=get_safe_conf()["temperature"],
+            temperature=get_safe_conf()["temperature"] if model.sampling else None,
             stream=get_safe_conf()["stream"],
         )
         self._current_thread.start()

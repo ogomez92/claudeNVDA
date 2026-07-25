@@ -14,15 +14,15 @@ confSpecs = {
     "bedrockRegion": 'string(default="us-east-2")',
 
     # Model settings
-    "model": "string(default='claude-sonnet-4-6')",
-    "modelVision": "string(default='claude-sonnet-4-6')",
+    "model": "string(default='claude-opus-5')",
+    "modelVision": "string(default='claude-opus-5')",
 
     # Per-model Bedrock ID overrides. Keyed by the Anthropic-style model id.
     # Empty string means "use the default from consts.CLAUDE_MODELS".
     "bedrockModelOverrides": {
-        "claude-opus-4-7": 'string(default="global.anthropic.claude-opus-4-7-v1")',
-        "claude-sonnet-4-6": 'string(default="global.anthropic.claude-sonnet-4-6-v1")',
-        "claude-haiku-4-5-20251001": 'string(default="global.anthropic.claude-haiku-4-5-v1")',
+        "claude-opus-5": 'string(default="global.anthropic.claude-opus-5-v1")',
+        "claude-sonnet-5": 'string(default="global.anthropic.claude-sonnet-5-v1")',
+        "claude-haiku-4-5": 'string(default="global.anthropic.claude-haiku-4-5-v1")',
     },
 
     # Generation parameters
