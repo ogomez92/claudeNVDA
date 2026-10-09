@@ -22,12 +22,12 @@ addon_info = AddonInfo(
 	# Add-on description
 	# Translators: Long description to be shown for this add-on on add-on information from add-on store
 	addon_description=_("""Comprehensive Anthropic Claude AI capabilities integrated into NVDA.
-Supports Claude Opus 5, Sonnet 5, and Haiku 4.5 for chat, image description, and more."""),
+Supports Claude Haiku 5.5, Sonnet 5.5, Opus 5.5, and Fable 5.1 for chat, image description, and more."""),
 	# version
-	addon_version="1.2.0",
+	addon_version="1.3.0",
 	# Brief changelog for this version
 	# Translators: what's new content for the add-on version to be shown in the add-on store
-	addon_changelog=_("""Updated to the latest Claude models: Opus 5, Sonnet 5, and Haiku 4.5."""),
+	addon_changelog=_("""Updated to the latest Claude models with Haiku 5.5 as the default. Adds computer use, PDF summaries and OCR, web search, and reasoning effort settings."""),
 	# Author(s)
 	addon_author="Oriol Gomez Sentis",
 	# URL for the add-on documentation support
@@ -60,6 +60,7 @@ Supports Claude Opus 5, Sonnet 5, and Haiku 4.5 for chat, image description, and
 # https://scons.org/doc/production/HTML/scons-user/apd.html
 pythonSources: list[str] = [
 	"addon/globalPlugins/ClauVDA/*.py",
+	"addon/globalPlugins/ClauVDA/computeruse/*.py",
 ]
 
 # Files that contain strings for translation. Usually your python sources

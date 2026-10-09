@@ -14,21 +14,28 @@ confSpecs = {
     "bedrockRegion": 'string(default="us-east-2")',
 
     # Model settings
-    "model": "string(default='claude-opus-5')",
-    "modelVision": "string(default='claude-opus-5')",
+    "model": "string(default='claude-haiku-5-5')",
+    "modelVision": "string(default='claude-haiku-5-5')",
 
     # Per-model Bedrock ID overrides. Keyed by the Anthropic-style model id.
     # Empty string means "use the default from consts.CLAUDE_MODELS".
     "bedrockModelOverrides": {
-        "claude-opus-5": 'string(default="global.anthropic.claude-opus-5-v1")',
-        "claude-sonnet-5": 'string(default="global.anthropic.claude-sonnet-5-v1")',
-        "claude-haiku-4-5": 'string(default="global.anthropic.claude-haiku-4-5-v1")',
+        "claude-haiku-5-5": 'string(default="anthropic.claude-haiku-5-5")',
+        "claude-sonnet-5-5": 'string(default="anthropic.claude-sonnet-5-5")',
+        "claude-opus-5-5": 'string(default="anthropic.claude-opus-5-5")',
+        "claude-fable-5-1": 'string(default="anthropic.claude-fable-5-1")',
     },
 
     # Generation parameters
     "temperature": "float(min=0.0, max=1.0, default=1.0)",
     "maxOutputTokens": "integer(min=1, max=65536, default=8192)",
     "stream": "boolean(default=True)",
+    # How much Claude thinks before answering, for the chat dialog and for the
+    # one-shot actions (summaries, video). Lower is faster and cheaper.
+    "effort": 'option("low", "medium", "high", "xhigh", "max", default="medium")',
+    "quickEffort": 'option("low", "medium", "high", "xhigh", "max", default="low")',
+    # Let Claude search the web from the chat dialog (Anthropic API only).
+    "webSearch": "boolean(default=True)",
 
     # Conversation settings
     "conversationMode": "boolean(default=True)",
@@ -70,6 +77,29 @@ confSpecs = {
         "soundResponseReceived": "boolean(default=True)",
         "speechResponseReceived": "boolean(default=True)",
         "brailleAutoFocus": "boolean(default=True)",
+    },
+
+    # Computer use: Claude operates the desktop through screenshots, mouse
+    # and keyboard (Anthropic API only).
+    "computerUse": {
+        "model": "string(default='claude-haiku-5-5')",
+        "effort": 'option("low", "medium", "high", "xhigh", "max", default="medium")',
+        # Claude turns (screenshot/act cycles) before the task pauses.
+        "maxSteps": "integer(default=25, min=1, max=200)",
+        # Output tokens per turn, shared with thinking.
+        "maxTokens": "integer(default=16000, min=2048, max=64000)",
+        # Longest edge of the screenshots Claude sees. Lower costs fewer
+        # tokens; Claude can still zoom in for detail.
+        "maxScreenshotEdge": "integer(default=1568, min=640, max=2576)",
+        # Milliseconds to let the interface settle after each action.
+        "actionDelay": "integer(default=600, min=0, max=5000)",
+        # Extra milliseconds in screen-reader testing mode for NVDA to finish
+        # speaking before its output is sent to Claude.
+        "speechSettleDelay": "integer(default=500, min=0, max=5000)",
+        # Recent actions whose results (screenshots) stay in context once the
+        # conversation grows long; older ones are cleared server-side.
+        "keepActions": "integer(default=8, min=2, max=50)",
+        "enableZoom": "boolean(default=True)",
     },
 
     # Debug

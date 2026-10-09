@@ -1,12 +1,12 @@
-# GemVDA NVDA Add-on - German Translation
+# ClauVDA NVDA Add-on - German Translation
 # Copyright (C) 2024 NVDA Community
-# This file is distributed under the same license as the GemVDA add-on.
+# This file is distributed under the same license as the ClauVDA add-on.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: GemVDA NVDA Add-on 1.0.0\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-01 00:00+0000\n"
+"Project-Id-Version: ClauVDA 1.3.0\n"
+"Report-Msgid-Bugs-To: nvda-translations@groups.io\n"
+"POT-Creation-Date: 2026-10-09 06:50+0200\n"
 "PO-Revision-Date: 2024-01-01 00:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
@@ -16,201 +16,235 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#. Translators: Title of the main Gemini dialog
-msgid "Gemini AI"
-msgstr "Gemini AI"
+#. Translators: Title of Bedrock key configuration dialog
+msgid "Amazon Bedrock API Key"
+msgstr "Amazon-Bedrock-API-Schlüssel"
 
-#. Translators: Label for model selection dropdown
-msgid "&Model:"
-msgstr "&Modell:"
+#. Translators: Title of Anthropic key configuration dialog
+msgid "Anthropic API Key"
+msgstr "Anthropic-API-Schlüssel"
 
-#. Translators: Label for system prompt section
-msgid "S&ystem prompt:"
-msgstr "S&ystemaufforderung:"
+msgid ""
+"Enter your Amazon Bedrock API key (bearer token).\n"
+"Create one at: https://console.aws.amazon.com/bedrock/home#/api-keys"
+msgstr ""
+"Geben Sie Ihren Amazon-Bedrock-API-Schlüssel (Bearer-Token) ein.\n"
+"Erstellen Sie einen unter: https://console.aws.amazon.com/bedrock/home#/api-keys"
 
-#. Translators: Label for conversation history
-msgid "&History:"
-msgstr "&Verlauf:"
+msgid ""
+"Enter your Anthropic API key.\n"
+"Get one at: https://console.anthropic.com/settings/keys"
+msgstr ""
+"Geben Sie Ihren Anthropic-API-Schlüssel ein.\n"
+"Sie erhalten einen unter: https://console.anthropic.com/settings/keys"
 
-#. Translators: Label for user message input
-msgid "&Message:"
-msgstr "&Nachricht:"
-
-#. Translators: Button to send message
-msgid "&Send"
-msgstr "&Senden"
-
-#. Translators: Button to attach image
-msgid "Attach &Image..."
-msgstr "&Bild anhaengen..."
-
-#. Translators: Button to clear conversation
-msgid "&Clear"
-msgstr "&Loeschen"
-
-#. Translators: Button to copy last response
-msgid "C&opy Response"
-msgstr "Antwort k&opieren"
-
-#. Translators: Button to close dialog
-msgid "Close"
-msgstr "Schliessen"
-
-#. Translators: Error message prefix
-msgid "Error: {error}"
-msgstr "Fehler: {error}"
-
-#. Translators: Label for user messages in history
-msgid "You"
-msgstr "Sie"
-
-#. Translators: Label for Gemini responses in history
-msgid "Gemini"
-msgstr "Gemini"
-
-#. Translators: Indicator for attached images
-msgid "[{count} image(s)] {text}"
-msgstr "[{count} Bild(er)] {text}"
-
-#. Translators: Title of image file selection dialog
-msgid "Select Image"
-msgstr "Bild auswaehlen"
-
-#. Translators: File filter for image selection
-msgid "Image files (*.png;*.jpg;*.jpeg;*.gif;*.webp)|*.png;*.jpg;*.jpeg;*.gif;*.webp"
-msgstr "Bilddateien (*.png;*.jpg;*.jpeg;*.gif;*.webp)|*.png;*.jpg;*.jpeg;*.gif;*.webp"
-
-#. Translators: Label showing number of attached images
-msgid "{count} image(s) attached"
-msgstr "{count} Bild(er) angehaengt"
-
-#. Translators: Message when conversation is cleared
-msgid "Conversation cleared"
-msgstr "Konversation geloescht"
-
-#. Translators: Message when response is copied
-msgid "Response copied to clipboard"
-msgstr "Antwort in Zwischenablage kopiert"
-
-#. Translators: Message when there's no response to copy
-msgid "No response to copy"
-msgstr "Keine Antwort zum Kopieren"
-
-#. Translators: Title of API key configuration dialog
-msgid "Gemini API Key"
-msgstr "Gemini API-Schluessel"
-
-#. Translators: Instructions for getting API key
-msgid "Enter your Gemini API key.\nGet one at: https://aistudio.google.com/apikey"
-msgstr "Geben Sie Ihren Gemini API-Schluessel ein.\nHolen Sie sich einen unter: https://aistudio.google.com/apikey"
-
-#. Translators: Shows where API key is currently stored
+#, python-brace-format
 msgid "Current key source: {source}"
-msgstr "Aktuelle Schluesselquelle: {source}"
+msgstr "Aktuelle Schlüsselquelle: {source}"
 
 #. Translators: Label for API key input field
 msgid "API &Key:"
-msgstr "API-&Schluessel:"
+msgstr "API-&Schlüssel:"
 
 #. Translators: Button to delete saved API key
 msgid "&Delete Key"
-msgstr "Schluessel &loeschen"
+msgstr "Schlüssel &löschen"
 
 #. Translators: Confirmation that API key was saved
 msgid "API key saved"
-msgstr "API-Schluessel gespeichert"
+msgstr "API-Schlüssel gespeichert"
 
 #. Translators: Error saving API key
 msgid "Failed to save API key"
-msgstr "Fehler beim Speichern des API-Schluessels"
+msgstr "Fehler beim Speichern des API-Schlüssels"
 
 #. Translators: Confirmation that API key was deleted
 msgid "API key deleted"
-msgstr "API-Schluessel geloescht"
+msgstr "API-Schlüssel gelöscht"
 
 #. Translators: Error deleting API key
 msgid "Failed to delete API key"
-msgstr "Fehler beim Loeschen des API-Schluessels"
+msgstr "Fehler beim Löschen des API-Schlüssels"
 
-#. Translators: Label for API key configuration button
-msgid "Configure API &Key..."
-msgstr "API-&Schluessel konfigurieren..."
+#. Translators: Title of settings panel
+#. Translators: Category for input gestures
+#. Translators: Title of the main Claude dialog
+msgid "Claude AI"
+msgstr "Claude AI"
 
-#. Translators: Label for default model selection
+msgid "&API provider:"
+msgstr "&API-Anbieter:"
+
+msgid "Anthropic (direct)"
+msgstr "Anthropic (direkt)"
+
+msgid "Amazon Bedrock"
+msgstr "Amazon Bedrock"
+
+msgid "AWS &region (Bedrock only):"
+msgstr "AWS-&Region (nur Bedrock):"
+
+msgid "Configure &Anthropic API Key..."
+msgstr "&Anthropic-API-Schlüssel konfigurieren..."
+
+msgid "Configure &Bedrock API Key..."
+msgstr "&Bedrock-API-Schlüssel konfigurieren..."
+
 msgid "Default &model:"
 msgstr "Standard&modell:"
 
-#. Translators: Label for temperature setting
-msgid "&Temperature (0-200):"
-msgstr "&Temperatur (0-200):"
+msgid "Bedrock model IDs"
+msgstr "Bedrock-Modell-IDs"
 
-#. Translators: Label for max output tokens setting
+#. Translators: Label for the Bedrock ID of a specific model.
+#. {name} is the human-readable model name.
+#, python-brace-format
+msgid "{name}:"
+msgstr "{name}:"
+
 msgid "Ma&x output tokens:"
 msgstr "Ma&x. Ausgabe-Tokens:"
 
-#. Translators: Checkbox for streaming responses
+msgid "Reasoning &effort for chat:"
+msgstr "&Denkaufwand im Chat:"
+
+msgid "Reasoning effort for &quick actions (summaries, video):"
+msgstr "Denkaufwand für Sch&nellaktionen (Zusammenfassungen, Video):"
+
+msgid "Let Claude searc&h the web in chat (Anthropic API only)"
+msgstr "Claude im Chat im Web suc&hen lassen (nur Anthropic-API)"
+
 msgid "&Stream responses"
 msgstr "Antworten &streamen"
 
-#. Translators: Checkbox for conversation mode
 msgid "&Conversation mode (include history)"
 msgstr "&Konversationsmodus (Verlauf einbeziehen)"
 
-#. Translators: Checkbox for saving system prompt
 msgid "&Remember system prompt"
 msgstr "Systemaufforderung &merken"
 
-#. Translators: Checkbox for blocking escape key
 msgid "&Block Escape key in dialog"
 msgstr "&Escape-Taste im Dialog blockieren"
 
-#. Translators: Checkbox for filtering markdown from responses
 msgid "&Filter markdown from responses"
 msgstr "Markdown aus Antworten &filtern"
 
-#. Translators: Label for feedback settings group
-msgid "Sound Feedback"
-msgstr "Akustische Rueckmeldung"
+#. Video analysis prompt
+#. Translators: Label for video analysis prompt text field
+msgid "&Video analysis prompt:"
+msgstr "&Videoanalyse-Prompt:"
 
-#. Translators: Checkbox for request sent sound
+#. Translators: Default video analysis prompt sent to the AI model
+msgid "Describe this video in detail, but concise. Get as much information as you can and if there is any important text in the video read it."
+msgstr "Beschreiben Sie dieses Video detailliert, aber prägnant. Erfassen Sie so viele Informationen wie möglich und wenn wichtiger Text im Video vorhanden ist, lesen Sie ihn vor."
+
+#. Summarize selection prompt
+#. Translators: Label for summarize selection prompt text field
+msgid "S&ummarize selection prompt:"
+msgstr "Z&usammenfassungs-Prompt:"
+
+#. Translators: Default prompt used when summarizing selected text with AI
+msgid "Summarize the key points of the following text in a clear and concise manner:"
+msgstr "Fassen Sie die wichtigsten Punkte des folgenden Textes klar und prägnant zusammen:"
+
+#. Summarize last speech prompt
+#. Translators: Label for summarize last speech prompt text field
+msgid "Summarize last s&peech prompt:"
+msgstr "Zusammenfassungs-Prompt für letzte S&prachausgabe:"
+
+#. Translators: Default prompt used when summarizing the last spoken text with AI
+msgid "Summarize the following text concisely. Respond in the same language as the text:"
+msgstr "Fassen Sie den folgenden Text prägnant zusammen. Antworten Sie in derselben Sprache wie der Text:"
+
+msgid "Sound Feedback"
+msgstr "Akustische Rückmeldung"
+
 msgid "Play sound when request &sent"
 msgstr "Ton bei &gesendeter Anfrage abspielen"
 
-#. Translators: Checkbox for response pending sound
 msgid "Play sound while &waiting"
 msgstr "Ton beim &Warten abspielen"
 
-#. Translators: Checkbox for response received sound
 msgid "Play sound when response &received"
 msgstr "Ton bei &empfangener Antwort abspielen"
 
-#. Translators: Menu item to open Gemini dialog
-msgid "Open Gemini &Dialog...\tNVDA+G"
-msgstr "Gemini-&Dialog oeffnen...\tNVDA+G"
+#. Translators: Group label for computer use settings
+msgid "Computer use"
+msgstr "Computersteuerung"
+
+msgid "Computer use mo&del:"
+msgstr "Mo&dell für Computersteuerung:"
+
+msgid "Computer use reasoning effor&t:"
+msgstr "Denkaufwand für Compu&tersteuerung:"
+
+#. Translators: Label for the number of Claude turns before a computer use task pauses
+msgid "Maximum steps per tas&k:"
+msgstr "Maximale Schritte pro Auf&gabe:"
+
+#. Translators: Label for the output token limit of each computer use turn
+msgid "Maximum tokens per step:"
+msgstr "Maximale Tokens pro Schritt:"
+
+#. Translators: Label for the size of the screenshots Claude sees
+msgid "Screenshot longest edge (pixels):"
+msgstr "Längste Seite des Bildschirmfotos (Pixel):"
+
+#. Translators: Label for the pause after each action before the next screenshot
+msgid "Delay after each action (milliseconds):"
+msgstr "Verzögerung nach jeder Aktion (Millisekunden):"
+
+#. Translators: Label for the extra wait used to capture NVDA's speech in testing mode
+msgid "Speech capture delay in testing mode (milliseconds):"
+msgstr "Verzögerung für Sprachaufzeichnung im Testmodus (Millisekunden):"
+
+#. Translators: Label for how many recent actions keep their results in context
+msgid "Recent actions to keep in context:"
+msgstr "Letzte Aktionen, die im Kontext bleiben:"
+
+msgid "Allow Claude to &zoom in for detail"
+msgstr "Claude für Details &zoomen lassen"
+
+#. Translators: Menu item to open Claude dialog
+msgid "Open Claude &Dialog...\tNVDA+G"
+msgstr "Claude-&Dialog öffnen...\tNVDA+G"
+
+#. Translators: Menu item to open the computer use dialog
+msgid "Computer &use...\tNVDA+Alt+Shift+C"
+msgstr "Computer&steuerung...\tNVDA+Alt+Shift+C"
+
+#. Translators: Menu item to summarize a PDF
+msgid "Summari&ze PDF...\tNVDA+Shift+P"
+msgstr "PDF &zusammenfassen...\tNVDA+Shift+P"
+
+#. Translators: Menu item to read all the text of a PDF with AI
+msgid "&Read PDF text with AI (OCR)...\tNVDA+Alt+P"
+msgstr "PDF-Text mit KI &lesen (OCR)...\tNVDA+Alt+P"
 
 #. Translators: Menu item to open settings
 msgid "&Settings..."
 msgstr "&Einstellungen..."
 
-#. Translators: Menu item to open API key page
+#. Translators: Menu item to open API key page for active provider
 msgid "Get &API Key (web)..."
-msgstr "&API-Schluessel holen (Web)..."
+msgstr "&API-Schlüssel holen (Web)..."
 
-#. Translators: System tray menu item label
-msgid "&Gemini"
-msgstr "&Gemini"
+msgid "&Claude"
+msgstr "&Claude"
 
-#. Translators: Error when google-genai is not installed
-msgid "Google GenAI library not installed. Please run install_deps.py in the add-on folder."
-msgstr "Google GenAI-Bibliothek nicht installiert. Bitte fuehren Sie install_deps.py im Erweiterungsordner aus."
+msgid "Anthropic SDK failed to load. Please reinstall the add-on."
+msgstr "Das Anthropic-SDK konnte nicht geladen werden. Bitte installieren Sie die Erweiterung neu."
 
 #. Translators: Description for show dialog script
-msgid "Show Gemini AI dialog"
-msgstr "Gemini AI-Dialog anzeigen"
+msgid "Show Claude AI dialog"
+msgstr "Claude-AI-Dialog anzeigen"
 
 #. Translators: Description for describe screen script
-msgid "Describe the entire screen using Gemini"
-msgstr "Gesamten Bildschirm mit Gemini beschreiben"
+msgid "Describe the entire screen using Claude"
+msgstr "Den gesamten Bildschirm mit Claude beschreiben"
+
+msgid "Anthropic SDK not installed."
+msgstr "Anthropic-SDK nicht installiert."
 
 #. Translators: Message while capturing screenshot
 msgid "Capturing screen..."
@@ -221,8 +255,8 @@ msgid "Failed to capture screenshot"
 msgstr "Bildschirmerfassung fehlgeschlagen"
 
 #. Translators: Description for describe object script
-msgid "Describe the navigator object using Gemini"
-msgstr "Navigatorobjekt mit Gemini beschreiben"
+msgid "Describe the navigator object using Claude"
+msgstr "Das Navigatorobjekt mit Claude beschreiben"
 
 #. Translators: Message while capturing object
 msgid "Capturing object..."
@@ -232,45 +266,42 @@ msgstr "Objekt wird erfasst..."
 msgid "Failed to capture object"
 msgstr "Objekterfassung fehlgeschlagen"
 
-#. Translators: Label for video analysis prompt text field
-msgid "&Video analysis prompt:"
-msgstr "&Videoanalyse-Prompt:"
+#. Translators: Message while extracting frames from the video
+msgid "Extracting frames..."
+msgstr "Einzelbilder werden extrahiert..."
 
-#. Translators: Default video analysis prompt sent to the AI model
-msgid "Describe this video in detail, but concise. Get as much information as you can and if there is any important text in the video read it."
-msgstr "Beschreiben Sie dieses Video detailliert, aber praegnant. Erfassen Sie so viele Informationen wie moeglich und wenn wichtiger Text im Video vorhanden ist, lesen Sie ihn vor."
-
-#. Translators: Error message when no API key is configured
-msgid "No Gemini API key configured. Please add your API key in the settings."
-msgstr "Kein Gemini API-Schluessel konfiguriert. Bitte fuegen Sie Ihren API-Schluessel in den Einstellungen hinzu."
-
-#. Translators: Description for video capture toggle script
-msgid "Start or stop video recording for Gemini analysis"
-msgstr "Videoaufnahme fuer Gemini-Analyse starten oder stoppen"
-
-#. Translators: Message while uploading video
-msgid "Uploading video..."
-msgstr "Video wird hochgeladen..."
-
-#. Translators: Message when video processing failed
-msgid "Video processing failed"
-msgstr "Videobearbeitung fehlgeschlagen"
+#. Translators: Error when frame extraction fails
+msgid "Failed to extract frames from video"
+msgstr "Einzelbilder konnten nicht aus dem Video extrahiert werden"
 
 #. Translators: Message while analyzing video
 msgid "Analyzing video..."
 msgstr "Video wird analysiert..."
 
+#, python-brace-format
+msgid "The following images are {count} frames sampled in order from a short screen recording."
+msgstr "Die folgenden Bilder sind {count} Einzelbilder, die der Reihe nach aus einer kurzen Bildschirmaufnahme entnommen wurden."
+
+#, python-brace-format
+msgid "Video analysis failed: {error}"
+msgstr "Videoanalyse fehlgeschlagen: {error}"
+
+#. Translators: Description for video capture toggle script
+msgid "Start or stop video recording for Claude analysis"
+msgstr "Videoaufnahme für die Analyse durch Claude starten oder stoppen"
+
 #. Translators: Error when video capture dependencies not available
 msgid "Video capture not available. Missing dependencies."
-msgstr "Videoaufnahme nicht verfuegbar. Fehlende Abhaengigkeiten."
+msgstr "Videoaufnahme nicht verfügbar. Fehlende Abhängigkeiten."
 
+#. Stop recording
 #. Translators: Message when stopping video recording
 msgid "Stopping recording..."
 msgstr "Aufnahme wird gestoppt..."
 
 #. Translators: Message when video saved successfully
-msgid "Video saved. Sending to Gemini for analysis..."
-msgstr "Video gespeichert. Wird zur Analyse an Gemini gesendet..."
+msgid "Video saved. Sending to Claude for analysis..."
+msgstr "Video gespeichert. Wird zur Analyse an Claude gesendet..."
 
 #. Translators: Error when video save fails
 msgid "Failed to save video"
@@ -278,40 +309,551 @@ msgstr "Video speichern fehlgeschlagen"
 
 #. Translators: Message when video recording starts
 msgid "Recording started. Press NVDA+V again to stop."
-msgstr "Aufnahme gestartet. Druecken Sie erneut NVDA+V zum Stoppen."
+msgstr "Aufnahme gestartet. Drücken Sie erneut NVDA+V zum Stoppen."
 
 #. Translators: Error when video recording fails to start
 msgid "Failed to start recording"
 msgstr "Aufnahme starten fehlgeschlagen"
 
-#. Translators: Error during video analysis
-msgid "Video analysis failed: {error}"
-msgstr "Videoanalyse fehlgeschlagen: {error}"
+#. Translators: Computer use is not offered for the Bedrock provider
+msgid "Computer use needs the Anthropic API provider. Change it in the Claude AI settings."
+msgstr "Die Computersteuerung erfordert den Anbieter Anthropic-API. Ändern Sie ihn in den Claude-AI-Einstellungen."
+
+#. Translators: Computer use relies on APIs added in NVDA 2026.1
+msgid "Computer use needs NVDA 2026.1 or later."
+msgstr "Die Computersteuerung erfordert NVDA 2026.1 oder neuer."
+
+#. Translators: Description of the command that opens the computer use dialog
+msgid "Open Claude computer use, to let Claude operate the current window"
+msgstr "Claude-Computersteuerung öffnen, damit Claude das aktuelle Fenster bedient"
+
+#. Translators: Description of the command that pauses a running computer use task
+msgid "Pause the running computer use task and open its dialog to guide Claude"
+msgstr "Die laufende Computersteuerungsaufgabe anhalten und ihren Dialog öffnen, um Claude Hinweise zu geben"
+
+#. Translators: Announced when the user pauses a computer use task
+msgid "Pausing the Claude task…"
+msgstr "Claude-Aufgabe wird angehalten…"
+
+#. Translators: Announced when the computer use task is already paused
+msgid "The Claude task is paused. Type guidance in the dialog, then resume."
+msgstr "Die Claude-Aufgabe ist angehalten. Geben Sie im Dialog Hinweise ein und setzen Sie sie dann fort."
+
+#. Translators: Announced when no computer use task is running
+msgid "No Claude task is running."
+msgstr "Es läuft keine Claude-Aufgabe."
+
+#. Translators: Description of the command that summarizes a PDF
+msgid "Summarize a PDF: the one selected in File Explorer, or one you choose"
+msgstr "Eine PDF zusammenfassen: die im Datei-Explorer ausgewählte oder eine selbst gewählte"
+
+msgid "Read all the text of a PDF with AI (OCR), including scanned pages: the one selected in File Explorer, or one you choose"
+msgstr "Den gesamten Text einer PDF mit KI lesen (OCR), auch gescannte Seiten: die im Datei-Explorer ausgewählte oder eine selbst gewählte"
+
+#. Translators: Title of PDF file selection dialog
+msgid "Select PDF"
+msgstr "PDF auswählen"
+
+#. Translators: File type filter in the PDF selection dialog
+msgid "PDF documents (*.pdf)|*.pdf"
+msgstr "PDF-Dokumente (*.pdf)|*.pdf"
+
+#. Translators: Announced while Claude summarizes a PDF. {name} is the file name
+#, python-brace-format
+msgid "Summarizing {name}..."
+msgstr "{name} wird zusammengefasst..."
+
+msgid "Summarize this PDF. Start with one sentence saying what kind of document it is, then give its key points. Write the summary in the language of this request."
+msgstr "Fassen Sie diese PDF zusammen. Beginnen Sie mit einem Satz, der angibt, um welche Art von Dokument es sich handelt, und nennen Sie dann die wichtigsten Punkte. Schreiben Sie die Zusammenfassung in der Sprache dieser Anfrage."
+
+#. Translators: Title of the window showing a PDF summary. {name} is the file name
+#, python-brace-format
+msgid "Summary of {name}"
+msgstr "Zusammenfassung von {name}"
+
+#. Translators: Announced while Claude reads the text of a PDF. {name} is the file name
+#, python-brace-format
+msgid "Reading the text of {name}. Long documents can take a while."
+msgstr "Der Text von {name} wird gelesen. Lange Dokumente können eine Weile dauern."
+
+#. Translators: Title of the window showing the text read from a PDF. {name} is the file name
+#, python-brace-format
+msgid "Text of {name}"
+msgstr "Text von {name}"
+
+#. Translators: Error when a PDF can't be read from disk
+#, python-brace-format
+msgid "Could not read {name}"
+msgstr "{name} konnte nicht gelesen werden"
+
+#. Translators: Added to a PDF result that hit the output limit
+msgid "[The result was cut off because it reached the output limit.]"
+msgstr "[Das Ergebnis wurde abgeschnitten, weil das Ausgabelimit erreicht wurde.]"
+
+#. Translators: Error while summarizing or reading a PDF
+#, python-brace-format
+msgid "PDF request failed: {error}"
+msgstr "PDF-Anfrage fehlgeschlagen: {error}"
 
 #. Translators: Description for summarize selection script
-msgid "Summarize selected text using Gemini"
-msgstr "Ausgewaehlten Text mit Gemini zusammenfassen"
-
-#. Translators: Label for summarize selection prompt text field
-msgid "S&ummarize selection prompt:"
-msgstr "Z&usammenfassungs-Prompt:"
-
-#. Translators: Default prompt used when summarizing selected text with AI
-msgid "Summarize the key points of the following text in a clear and concise manner:"
-msgstr "Fassen Sie die wichtigsten Punkte des folgenden Textes klar und praegnant zusammen:"
+msgid "Summarize selected text using Claude"
+msgstr "Ausgewählten Text mit Claude zusammenfassen"
 
 #. Translators: Error when no text is selected for summarization
 msgid "No text selected"
-msgstr "Kein Text ausgewaehlt"
+msgstr "Kein Text ausgewählt"
 
 #. Translators: Message while summarizing text
+#. Translators: Message while summarizing last speech
 msgid "Summarizing..."
 msgstr "Wird zusammengefasst..."
 
-#. Translators: Error during text summarization
+#. Translators: Description for summarize last speech script
+msgid "Summarize the last spoken text using Claude"
+msgstr "Den zuletzt gesprochenen Text mit Claude zusammenfassen"
+
+#. Translators: Error when no speech history is available
+msgid "No speech history available"
+msgstr "Kein Sprachverlauf verfügbar"
+
+#, python-brace-format
 msgid "Summarization failed: {error}"
 msgstr "Zusammenfassung fehlgeschlagen: {error}"
 
-#. Translators: Message when AI returns no response
+#. Translators: Error when a PDF is too large to send. {name} is the file name
+#, python-brace-format
+msgid "{name} is too large to send. PDFs can be up to 20 MB."
+msgstr "{name} ist zu groß zum Senden. PDFs dürfen höchstens 20 MB groß sein."
+
+#. Translators: Spoken when Claude's safety checks decline a request
+msgid "Claude declined this request. Try rephrasing it, or choose a different model."
+msgstr "Claude hat diese Anfrage abgelehnt. Formulieren Sie sie um oder wählen Sie ein anderes Modell."
+
 msgid "No response from AI"
 msgstr "Keine Antwort von der KI"
+
+#. Translators: Heading above the web pages Claude cited in a reply
+msgid "Sources:"
+msgstr "Quellen:"
+
+#. Translators: Reasoning effort level
+msgid "Low (fastest)"
+msgstr "Niedrig (am schnellsten)"
+
+#. Translators: Reasoning effort level
+msgid "Medium"
+msgstr "Mittel"
+
+#. Translators: Reasoning effort level
+msgid "High"
+msgstr "Hoch"
+
+#. Translators: Reasoning effort level
+msgid "Extra high"
+msgstr "Sehr hoch"
+
+#. Translators: Reasoning effort level
+msgid "Maximum (slowest)"
+msgstr "Maximal (am langsamsten)"
+
+#. Translators: Label for model selection dropdown
+msgid "M&odel:"
+msgstr "&Modell:"
+
+#. Translators: Checkbox letting Claude search the web for this conversation
+msgid "Let Claude search the &web"
+msgstr "Claude im &Web suchen lassen"
+
+#. System prompt
+#. Translators: Label for system prompt section
+msgid "S&ystem prompt:"
+msgstr "S&ystemaufforderung:"
+
+#. Messages display
+#. Translators: Label for conversation messages
+msgid "&Messages:"
+msgstr "&Nachrichten:"
+
+#. Prompt input
+#. Translators: Label for user prompt input
+msgid "&Prompt:"
+msgstr "&Prompt:"
+
+#. Translators: Button to send message
+msgid "&Send"
+msgstr "&Senden"
+
+#. Translators: Button to attach image
+msgid "Attach &Image..."
+msgstr "&Bild anhängen..."
+
+#. Translators: Button to attach video
+msgid "Attach &Video..."
+msgstr "&Video anhängen..."
+
+#. Translators: Button to attach a PDF document
+msgid "Attach P&DF..."
+msgstr "P&DF anhängen..."
+
+#. Translators: Button to clear conversation
+msgid "&Clear"
+msgstr "&Löschen"
+
+#. Translators: Button to copy last response
+msgid "C&opy Response"
+msgstr "Antwort k&opieren"
+
+#. Translators: Button to close dialog
+msgid "Close"
+msgstr "Schließen"
+
+#. Translators: Label for user messages when reading history
+#. Translators: Label for Claude messages when reading history
+#. Translators: Label for user messages in history
+msgid "You"
+msgstr "Sie"
+
+#. Translators: Activity log prefix for Claude's reply
+#. Translators: Activity log prefix for a note Claude wrote between actions
+msgid "Claude"
+msgstr "Claude"
+
+#, python-brace-format
+msgid "{role}: {text}"
+msgstr "{role}: {text}"
+
+#. Translators: Message when there are no messages in history
+msgid "No messages in history"
+msgstr "Keine Nachrichten im Verlauf"
+
+#. Translators: Message when requested message doesn't exist
+#. Translators: Message when requested message for copying doesn't exist
+#, python-brace-format
+msgid "Message {num} not available. Only {total} message(s) in history."
+msgstr "Nachricht {num} nicht verfügbar. Nur {total} Nachricht(en) im Verlauf."
+
+#. Translators: Message when the selected message is empty
+#, python-brace-format
+msgid "Message {num} is empty"
+msgstr "Nachricht {num} ist leer"
+
+#. Translators: Message when there are no messages to copy
+msgid "No messages to copy"
+msgstr "Keine Nachrichten zum Kopieren"
+
+#. Translators: Message when a message is copied to clipboard
+#, python-brace-format
+msgid "Message {num} copied to clipboard"
+msgstr "Nachricht {num} in die Zwischenablage kopiert"
+
+#. Translators: Message when the selected message is empty and cannot be copied
+#, python-brace-format
+msgid "Message {num} is empty, nothing to copy"
+msgstr "Nachricht {num} ist leer, nichts zu kopieren"
+
+#. Translators: Message while extracting frames from videos
+msgid "Extracting video frames..."
+msgstr "Videoeinzelbilder werden extrahiert..."
+
+#. Translators: Error message prefix
+#, python-brace-format
+msgid "Error: {error}"
+msgstr "Fehler: {error}"
+
+#. Translators: Indicator for attached images
+#. Translators: Label showing number of attached images
+#, python-brace-format
+msgid "{count} image(s)"
+msgstr "{count} Bild(er)"
+
+#. Translators: Indicator for attached video frames
+#, python-brace-format
+msgid "{count} video frame(s)"
+msgstr "{count} Videoeinzelbild(er)"
+
+#. Translators: Indicator for attached PDF documents
+#. Translators: Label showing number of attached PDF documents
+#, python-brace-format
+msgid "{count} PDF(s)"
+msgstr "{count} PDF(s)"
+
+msgid "Select Image"
+msgstr "Bild auswählen"
+
+msgid "Image files (*.png;*.jpg;*.jpeg;*.gif;*.webp)|*.png;*.jpg;*.jpeg;*.gif;*.webp"
+msgstr "Bilddateien (*.png;*.jpg;*.jpeg;*.gif;*.webp)|*.png;*.jpg;*.jpeg;*.gif;*.webp"
+
+msgid "Select Video"
+msgstr "Video auswählen"
+
+#, python-brace-format
+msgid "Video files ({ext})|{ext}"
+msgstr "Videodateien ({ext})|{ext}"
+
+#. Translators: Label showing number of videos queued for frame extraction
+#, python-brace-format
+msgid "{count} video(s) queued"
+msgstr "{count} Video(s) in der Warteschlange"
+
+#. Translators: Label showing number of extracted video frames ready to send
+#, python-brace-format
+msgid "{count} video frame(s) ready"
+msgstr "{count} Videoeinzelbild(er) bereit"
+
+msgid " attached"
+msgstr " angehängt"
+
+#, python-brace-format
+msgid "Frame extraction failed: {path}"
+msgstr "Extraktion der Einzelbilder fehlgeschlagen: {path}"
+
+#, python-brace-format
+msgid "Frame extraction failed: {error}"
+msgstr "Extraktion der Einzelbilder fehlgeschlagen: {error}"
+
+#. Translators: Message when conversation is cleared
+msgid "Conversation cleared"
+msgstr "Konversation gelöscht"
+
+#. Translators: Message when response is copied
+msgid "Response copied to clipboard"
+msgstr "Antwort in Zwischenablage kopiert"
+
+#. Translators: Message when there's no response to copy
+msgid "No response to copy"
+msgstr "Keine Antwort zum Kopieren"
+
+#. Translators: Reported when computer use fails unexpectedly
+#, python-brace-format
+msgid "Something went wrong: {error}"
+msgstr "Etwas ist schiefgelaufen: {error}"
+
+#. Translators: Announced when a computer use task is paused
+msgid "Paused. Type any new guidance for Claude in the dialog, then press Resume to continue."
+msgstr "Angehalten. Geben Sie im Dialog neue Hinweise für Claude ein und drücken Sie dann „Fortsetzen“."
+
+#. Translators: Announced when a computer use task is complete
+msgid "Finished. Type a follow-up request and press Continue, or press New task to start over."
+msgstr "Fertig. Geben Sie eine Folgeanfrage ein und drücken Sie „Weiter“, oder drücken Sie „Neue Aufgabe“, um neu zu beginnen."
+
+#. Translators: Announced when a computer use session ends
+msgid "Finished."
+msgstr "Fertig."
+
+#. Translators: Announced when computer use starts working
+msgid "Working…"
+msgstr "Wird bearbeitet…"
+
+#. Translators: Announced when the user stops a computer use task
+msgid "Stopped."
+msgstr "Gestoppt."
+
+#. Translators: Reported when a computer use request fails; the task can be resumed
+#, python-brace-format
+msgid "Claude API error: {error}"
+msgstr "Claude-API-Fehler: {error}"
+
+msgid "Claude's reply was cut off. Raise the maximum tokens per step in the Claude AI settings, or press Resume to let it try again."
+msgstr "Claudes Antwort wurde abgeschnitten. Erhöhen Sie die maximalen Tokens pro Schritt in den Claude-AI-Einstellungen, oder drücken Sie „Fortsetzen“, damit Claude es erneut versucht."
+
+#. Translators: Reported when a computer use task reaches its step limit
+msgid "Reached the maximum number of steps."
+msgstr "Maximale Anzahl an Schritten erreicht."
+
+#. Translators: Reported when an action Claude asked for could not run
+#, python-brace-format
+msgid "Action failed: {error}"
+msgstr "Aktion fehlgeschlagen: {error}"
+
+#. Translators: Activity log entry: Claude took a screenshot
+msgid "Taking a screenshot"
+msgstr "Bildschirmfoto aufnehmen"
+
+#. Translators: Activity log entry: Claude zoomed into part of the screen
+msgid "Zooming in to read detail"
+msgstr "Vergrößern, um Details zu lesen"
+
+#. Translators: Activity log entry: Claude waited
+msgid "Waiting"
+msgstr "Warten"
+
+#. Translators: Activity log entry: Claude checked the pointer position
+msgid "Checking the pointer position"
+msgstr "Mauszeigerposition prüfen"
+
+#. Translators: Activity log entry: Claude typed text. {text} is the text
+#, python-brace-format
+msgid "Typing: {text}"
+msgstr "Tippen: {text}"
+
+#. Translators: Activity log entry: Claude pressed keys. {keys} is the key combination
+#, python-brace-format
+msgid "Pressing {keys}"
+msgstr "{keys} drücken"
+
+#. Translators: Activity log entry: Claude held keys. {keys} is the key combination
+#, python-brace-format
+msgid "Holding {keys}"
+msgstr "{keys} gedrückt halten"
+
+#. Translators: Scroll direction, used in "Scrolling {direction}"
+msgid "up"
+msgstr "nach oben"
+
+#. Translators: Scroll direction, used in "Scrolling {direction}"
+msgid "down"
+msgstr "nach unten"
+
+#. Translators: Scroll direction, used in "Scrolling {direction}"
+msgid "left"
+msgstr "nach links"
+
+#. Translators: Scroll direction, used in "Scrolling {direction}"
+msgid "right"
+msgstr "nach rechts"
+
+#. Translators: Activity log entry: Claude scrolled. {direction} is up, down, left or right
+#, python-brace-format
+msgid "Scrolling {direction}"
+msgstr "Bildlauf {direction}"
+
+#. Translators: Activity log entry: Claude clicked. {x} and {y} are coordinates
+#, python-brace-format
+msgid "Clicking at {x}, {y}"
+msgstr "Klicken bei {x}, {y}"
+
+#. Translators: Activity log entry: Claude clicked where the pointer already was
+msgid "Clicking"
+msgstr "Klicken"
+
+#. Translators: Activity log entry: Claude right-clicked
+msgid "Right-clicking"
+msgstr "Rechtsklick"
+
+#. Translators: Activity log entry: Claude middle-clicked
+msgid "Middle-clicking"
+msgstr "Mittelklick"
+
+#. Translators: Activity log entry: Claude moved the pointer. {x} and {y} are coordinates
+#, python-brace-format
+msgid "Moving the pointer to {x}, {y}"
+msgstr "Mauszeiger nach {x}, {y} bewegen"
+
+#. Translators: Activity log entry: Claude dragged with the mouse
+msgid "Dragging"
+msgstr "Ziehen"
+
+#. Translators: Activity log entry for any other action. {action} is its name
+#, python-brace-format
+msgid "Performing action: {action}"
+msgstr "Aktion ausführen: {action}"
+
+#. Translators: Title of the computer use dialog
+#. Translators: Title of a computer use message box
+msgid "Claude Computer Use"
+msgstr "Claude-Computersteuerung"
+
+msgid "&What would you like Claude to do?"
+msgstr "&Was soll Claude tun?"
+
+msgid "Examples. Assistant: \"I'm stuck on this website, please tick the 'I agree' checkbox and press Continue.\" Screen-reader testing: \"Tab through this form and tell me whether every field is announced with a label.\""
+msgstr "Beispiele. Assistent: „Ich komme auf dieser Website nicht weiter, bitte das Kontrollkästchen ‚Ich stimme zu‘ aktivieren und auf Weiter klicken.“ Screenreader-Test: „Mit Tab durch dieses Formular gehen und prüfen, ob jedes Feld mit einer Beschriftung angesagt wird.“"
+
+#. Translators: Label for the computer use mode selector
+msgid "&Mode"
+msgstr "&Modus"
+
+#. Translators: The computer use assistant mode
+msgid "Assistant: do a task on my screen"
+msgstr "Assistent: eine Aufgabe auf meinem Bildschirm erledigen"
+
+#. Translators: The computer use screen-reader testing mode
+msgid "Screen-reader testing: check accessibility with NVDA's speech"
+msgstr "Screenreader-Test: Barrierefreiheit mit der Sprachausgabe von NVDA prüfen"
+
+msgid "&Activity"
+msgstr "&Aktivität"
+
+#. Translators: Button that starts a computer use task
+msgid "&Start"
+msgstr "&Starten"
+
+#. Translators: Button that stops a running computer use task
+msgid "Sto&p"
+msgstr "Sto&ppen"
+
+#. Translators: Button that discards a finished computer use conversation
+msgid "&New task"
+msgstr "&Neue Aufgabe"
+
+#. Translators: Button that closes the computer use dialog
+msgid "&Close"
+msgstr "S&chließen"
+
+#. Translators: Announced when the computer use request is empty
+msgid "Please type what you would like Claude to do."
+msgstr "Bitte geben Sie ein, was Claude tun soll."
+
+#. Translators: Activity log line when a computer use task starts
+msgid "Starting."
+msgstr "Wird gestartet."
+
+#. Translators: Activity log line when a paused computer use task resumes
+msgid "Resuming."
+msgstr "Wird fortgesetzt."
+
+#. Translators: Activity log line when a follow-up computer use request starts
+msgid "Continuing."
+msgstr "Es geht weiter."
+
+#. Translators: Announced when a finished computer use conversation is discarded
+msgid "New task. The previous conversation was discarded."
+msgstr "Neue Aufgabe. Die vorherige Konversation wurde verworfen."
+
+#. Translators: Activity log line when the user stops a computer use task
+msgid "Stopping."
+msgstr "Wird gestoppt."
+
+#. Translators: Confirmation when closing the dialog while a computer use task runs
+msgid "A task is still running. Stop it and close?"
+msgstr "Eine Aufgabe läuft noch. Stoppen und schließen?"
+
+#. Translators: Activity log prefix for an action Claude performed
+msgid "Action"
+msgstr "Aktion"
+
+#. Translators: Activity log prefix for a status update
+msgid "Status"
+msgstr "Status"
+
+#. Translators: Activity log prefix for an error
+msgid "Error"
+msgstr "Fehler"
+
+#. Translators: Button that resumes a paused computer use task
+msgid "&Resume"
+msgstr "&Fortsetzen"
+
+#. Translators: Button that sends a follow-up once a computer use task finished
+msgid "C&ontinue"
+msgstr "W&eiter"
+
+#. Add-on summary/title, usually the user visible name of the add-on
+#. Translators: Summary/title for this add-on
+#. to be shown on installation and add-on information found in add-on store
+msgid "ClauVDA (Anthropic Claude AI NVDA)"
+msgstr "ClauVDA (Anthropic Claude AI NVDA)"
+
+#. Add-on description
+#. Translators: Long description to be shown for this add-on on add-on information from add-on store
+msgid ""
+"Comprehensive Anthropic Claude AI capabilities integrated into NVDA.\n"
+"Supports Claude Haiku 5.5, Sonnet 5.5, Opus 5.5, and Fable 5.1 for chat, image description, and more."
+msgstr ""
+"Umfassende Funktionen von Anthropic Claude AI, integriert in NVDA.\n"
+"Unterstützt Claude Haiku 5.5, Sonnet 5.5, Opus 5.5 und Fable 5.1 für Chat, Bildbeschreibung und mehr."
+
+#. Brief changelog for this version
+#. Translators: what's new content for the add-on version to be shown in the add-on store
+msgid "Updated to the latest Claude models with Haiku 5.5 as the default. Adds computer use, PDF summaries and OCR, web search, and reasoning effort settings."
+msgstr "Auf die neuesten Claude-Modelle aktualisiert, mit Haiku 5.5 als Standard. Neu sind Computersteuerung, PDF-Zusammenfassungen und OCR, Websuche sowie Einstellungen für den Denkaufwand."

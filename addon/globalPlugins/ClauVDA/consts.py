@@ -4,8 +4,11 @@
 import os
 import struct
 import sys
+import addonHandler
 import globalVars
 from logHandler import log
+
+addonHandler.initTranslation()
 
 # Directory paths
 ADDON_DIR = os.path.dirname(__file__)
@@ -104,6 +107,9 @@ class Model:
         preview: bool = False,
         thinking: bool = False,
         sampling: bool = True,
+        web_search_tool: str = "web_search_20250305",
+        progress_updates: bool = False,
+        server_fallback: bool = False,
     ):
         self.id = id
         self.name = name
@@ -115,8 +121,17 @@ class Model:
         self.preview = preview
         self.thinking = thinking
         # False when the model rejects sampling parameters (temperature, top_p,
-        # top_k). Opus 5 and Sonnet 5 return HTTP 400 if temperature is sent.
+        # top_k). Every current model returns HTTP 400 if temperature is sent.
         self.sampling = sampling
+        # Web search tool version. web_search_20260209 adds dynamic filtering
+        # but is only documented for some models; the basic version runs on all.
+        self.web_search_tool = web_search_tool
+        # True when notes written between tool calls come back as thinking
+        # blocks that need thinking.display "updates" to carry text.
+        self.progress_updates = progress_updates
+        # True when the Claude API can retry a refused request on another
+        # model (fallbacks: "default"). Haiku 5.5 has no server-side fallback.
+        self.server_fallback = server_fallback
 
     def resolve_id(self, provider: str) -> str:
         """Return the right model identifier for the given provider.
@@ -140,13 +155,16 @@ class Model:
         return f"Model({self.id}, vision={self.vision})"
 
 
-# Available Claude models (as of July 2026)
-# Bedrock IDs use the "global." inference profile prefix.
+# Available Claude models (as of October 2026)
+# Bedrock IDs are for Claude in Amazon Bedrock (the Mantle Messages endpoint),
+# which takes the bare model name with an "anthropic." prefix.
+# None of these models accept sampling parameters (temperature, top_p, top_k)
+# and all of them think adaptively by default.
 CLAUDE_MODELS = [
     Model(
-        id="claude-opus-5",
-        name="Claude Opus 5",
-        bedrock_id="global.anthropic.claude-opus-5-v1",
+        id="claude-haiku-5-5",
+        name="Claude Haiku 5.5",
+        bedrock_id="anthropic.claude-haiku-5-5",
         context_window=1000000,
         max_output_tokens=128000,
         vision=True,
@@ -154,41 +172,92 @@ CLAUDE_MODELS = [
         sampling=False,
     ),
     Model(
-        id="claude-sonnet-5",
-        name="Claude Sonnet 5",
-        bedrock_id="global.anthropic.claude-sonnet-5-v1",
+        id="claude-sonnet-5-5",
+        name="Claude Sonnet 5.5",
+        bedrock_id="anthropic.claude-sonnet-5-5",
         context_window=1000000,
         max_output_tokens=128000,
         vision=True,
         thinking=True,
         sampling=False,
+        web_search_tool="web_search_20260209",
+        progress_updates=True,
+        server_fallback=True,
     ),
     Model(
-        id="claude-haiku-4-5",
-        name="Claude Haiku 4.5",
-        bedrock_id="global.anthropic.claude-haiku-4-5-v1",
-        context_window=200000,
-        max_output_tokens=64000,
+        id="claude-opus-5-5",
+        name="Claude Opus 5.5",
+        bedrock_id="anthropic.claude-opus-5-5",
+        context_window=1000000,
+        max_output_tokens=128000,
         vision=True,
         thinking=True,
+        sampling=False,
+        web_search_tool="web_search_20260209",
+        progress_updates=True,
+        server_fallback=True,
+    ),
+    Model(
+        id="claude-fable-5-1",
+        name="Claude Fable 5.1",
+        bedrock_id="anthropic.claude-fable-5-1",
+        context_window=1000000,
+        max_output_tokens=128000,
+        vision=True,
+        thinking=True,
+        sampling=False,
+        progress_updates=True,
+        server_fallback=True,
     ),
 ]
 
 # Default model
-DEFAULT_MODEL = "claude-opus-5"
-DEFAULT_VISION_MODEL = "claude-opus-5"
+DEFAULT_MODEL = "claude-haiku-5-5"
+DEFAULT_VISION_MODEL = "claude-haiku-5-5"
 
 # Model IDs from earlier add-on versions, mapped onto their replacements so a
 # saved setting keeps working after an upgrade. Anything unknown falls back to
 # DEFAULT_MODEL.
 LEGACY_MODEL_IDS = {
-    "claude-opus-4-7": "claude-opus-5",
-    "claude-opus-4-6": "claude-opus-5",
-    "claude-opus-4-5": "claude-opus-5",
-    "claude-sonnet-4-6": "claude-sonnet-5",
-    "claude-sonnet-4-5": "claude-sonnet-5",
-    "claude-haiku-4-5-20251001": "claude-haiku-4-5",
+    "claude-opus-5": "claude-opus-5-5",
+    "claude-opus-4-7": "claude-opus-5-5",
+    "claude-opus-4-6": "claude-opus-5-5",
+    "claude-opus-4-5": "claude-opus-5-5",
+    "claude-sonnet-5": "claude-sonnet-5-5",
+    "claude-sonnet-4-6": "claude-sonnet-5-5",
+    "claude-sonnet-4-5": "claude-sonnet-5-5",
+    "claude-haiku-4-5": "claude-haiku-5-5",
+    "claude-haiku-4-5-20251001": "claude-haiku-5-5",
 }
+
+
+# Effort levels accepted by every current model, lowest first. Effort sets how
+# much Claude thinks before answering: lower is faster and cheaper.
+EFFORT_LEVELS = ("low", "medium", "high", "xhigh", "max")
+
+
+def effort_labels() -> list[str]:
+    """Translated names for EFFORT_LEVELS, in the same order."""
+    return [
+        # Translators: Reasoning effort level
+        _("Low (fastest)"),
+        # Translators: Reasoning effort level
+        _("Medium"),
+        # Translators: Reasoning effort level
+        _("High"),
+        # Translators: Reasoning effort level
+        _("Extra high"),
+        # Translators: Reasoning effort level
+        _("Maximum (slowest)"),
+    ]
+
+
+def effort_index(level: str) -> int:
+    """Position of an effort level in EFFORT_LEVELS, defaulting to medium."""
+    try:
+        return EFFORT_LEVELS.index(level)
+    except ValueError:
+        return EFFORT_LEVELS.index("medium")
 
 
 # Model lookup helpers

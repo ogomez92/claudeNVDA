@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import re
 import sys
 import threading
 import base64
@@ -35,6 +36,7 @@ from .consts import (
 from .configspec import get_safe_conf
 from .resultevent import EVT_RESULT, ResultEvent
 from .mdfilter import filter_markdown
+from . import apirequest
 from . import videocapture
 
 # Add lib directory to path for anthropic
@@ -68,15 +70,28 @@ IMAGE_MIME_TYPES = {
 }
 
 
+# Where streamed speech may break: sentence punctuation followed by
+# whitespace (so "3.14" and "e.g.x" stay whole), CJK full stops, or a line end.
+_SENTENCE_END = re.compile(r"[.!?;:…](?=\s)|[。！？]|\n")
+
+
 class HistoryBlock:
     """Represents a message in the conversation history."""
 
-    def __init__(self, role: str, text: str = "", images: list = None, videos: list = None):
+    def __init__(
+        self,
+        role: str,
+        text: str = "",
+        images: list = None,
+        videos: list = None,
+        documents: list = None,
+    ):
         self.role = role  # "user" or "assistant"
         self.text = text
         self.images = images or []  # list of image paths (model sees base64 at send time)
         # For ClauVDA we don't keep uploaded-file references; videos are flattened to frame image paths.
         self.video_frames = videos or []
+        self.documents = documents or []  # list of PDF paths, encoded at send time
         self.focused = False
 
 
@@ -100,13 +115,21 @@ def _encode_image(path: str) -> dict | None:
         return None
 
 
-def _response_text(response) -> str:
-    """Extract plain text from a Claude Message response."""
+def _content_parts(images: list, frames: list, documents: list, text: str) -> list:
+    """Content blocks for one turn: documents and images first, then the text."""
     parts = []
-    for block in getattr(response, "content", []) or []:
-        if getattr(block, "type", None) == "text":
-            parts.append(block.text)
-    return "".join(parts)
+    for path in documents:
+        part = apirequest.pdf_block(path)
+        if part:
+            parts.append(part)
+    for path in [*images, *frames]:
+        if isinstance(path, str):
+            part = _encode_image(path)
+            if part:
+                parts.append(part)
+    if text:
+        parts.append({"type": "text", "text": text})
+    return parts
 
 
 class CompletionThread(threading.Thread):
@@ -116,37 +139,17 @@ class CompletionThread(threading.Thread):
         self,
         notify_window,
         client,
-        model_id: str,
-        messages: list,
-        system_prompt: str | None,
-        max_tokens: int,
-        temperature: float | None,
+        request_kwargs: dict,
+        betas: list[str],
         stream: bool = True,
     ):
         threading.Thread.__init__(self, daemon=True)
         self._notify_window = notify_window
         self._client = client
-        self._model_id = model_id
-        self._messages = messages
-        self._system_prompt = system_prompt or None
-        self._max_tokens = max_tokens
-        self._temperature = temperature
+        self._kwargs = request_kwargs
+        self._betas = betas
         self._stream = stream
         self._stop_event = threading.Event()
-
-    def _build_kwargs(self):
-        kwargs = {
-            "model": self._model_id,
-            "messages": self._messages,
-            "max_tokens": self._max_tokens,
-        }
-        # Opus 5 and Sonnet 5 reject sampling parameters, so temperature is
-        # only sent for models that still accept it.
-        if self._temperature is not None:
-            kwargs["temperature"] = self._temperature
-        if self._system_prompt:
-            kwargs["system"] = self._system_prompt
-        return kwargs
 
     def _safe_post_event(self, data):
         """Safely post event to window, handling case where window is destroyed."""
@@ -167,29 +170,48 @@ class CompletionThread(threading.Thread):
             log.error(f"Anthropic API error: {e}", exc_info=True)
             self._safe_post_event({"error": str(e)})
 
-    def _run_streaming(self):
-        response_text = ""
-        try:
-            with self._client.messages.stream(**self._build_kwargs()) as stream:
-                for delta in stream.text_stream:
-                    if self._stop_event.is_set():
-                        break
-                    if delta:
-                        response_text += delta
-                        self._safe_post_event({"chunk": delta, "done": False})
+    def _turns(self, send):
+        """Run ``send(kwargs)`` until the reply is complete.
 
-            self._safe_post_event({"text": response_text, "done": True})
-        except Exception as e:
-            log.error(f"Streaming error: {e}", exc_info=True)
-            self._safe_post_event({"error": str(e)})
+        The server can pause a long turn (stop_reason "pause_turn", for example
+        while searching the web); it continues when the paused reply is sent
+        back unchanged. Yields each response.
+        """
+        messages = list(self._kwargs["messages"])
+        for _attempt in range(apirequest.MAX_CONTINUATIONS + 1):
+            response = send(dict(self._kwargs, messages=messages))
+            if response is None:
+                return
+            yield response
+            if response.stop_reason != "pause_turn":
+                return
+            messages.append({"role": "assistant", "content": response.content})
+
+    def _send_streaming(self, kwargs):
+        with apirequest.stream(self._client, kwargs, self._betas) as stream:
+            for delta in stream.text_stream:
+                if self._stop_event.is_set():
+                    return None
+                if delta:
+                    self._safe_post_event({"chunk": delta, "done": False})
+            return stream.get_final_message()
+
+    def _run_streaming(self):
+        self._finish(self._turns(self._send_streaming))
 
     def _run_sync(self):
-        try:
-            response = self._client.messages.create(**self._build_kwargs())
-            self._safe_post_event({"text": _response_text(response), "done": True})
-        except Exception as e:
-            log.error(f"Sync error: {e}", exc_info=True)
-            self._safe_post_event({"error": str(e)})
+        self._finish(self._turns(lambda kwargs: apirequest.create(self._client, kwargs, self._betas)))
+
+    def _finish(self, responses):
+        text = ""
+        sources = []
+        for response in responses:
+            if apirequest.is_refusal(response):
+                self._safe_post_event({"error": apirequest.refusal_message()})
+                return
+            text += apirequest.response_text(response)
+            sources.extend(s for s in apirequest.cited_sources(response) if s not in sources)
+        self._safe_post_event({"text": text, "sources": apirequest.format_sources(sources), "done": True})
 
     def stop(self):
         self._stop_event.set()
@@ -217,6 +239,7 @@ class ClaudeDialog(wx.Dialog):
         self._pending_images: list[str] = []  # Paths to images to send
         self._pending_videos: list[str] = []  # Paths to videos to send
         self._pending_video_frames: list[str] = []  # Extracted frame paths ready to send
+        self._pending_documents: list[str] = []  # Paths to PDFs to send
 
         # For double-press detection on Alt+number keys
         self._last_message_key: int | None = None
@@ -225,6 +248,8 @@ class ClaudeDialog(wx.Dialog):
 
         # Track streaming state for speech
         self._received_streaming_chunks = False
+        # Streamed text not spoken yet because no sentence has ended in it
+        self._speech_buffer = ""
 
         # Track current prompt type for saving (screenshot, object, or None)
         self._current_prompt_type: str | None = None
@@ -272,6 +297,15 @@ class ClaudeDialog(wx.Dialog):
 
         model_sizer.Add(self._model_choice, 1, wx.EXPAND)
         main_sizer.Add(model_sizer, 0, wx.EXPAND | wx.ALL, 10)
+
+        # Translators: Checkbox letting Claude search the web for this conversation
+        self._web_search_checkbox = wx.CheckBox(panel, label=_("Let Claude search the &web"))
+        self._web_search_checkbox.SetValue(get_safe_conf()["webSearch"])
+        if get_safe_conf()["authProvider"] != "anthropic":
+            # Web search isn't offered on Amazon Bedrock.
+            self._web_search_checkbox.SetValue(False)
+            self._web_search_checkbox.Disable()
+        main_sizer.Add(self._web_search_checkbox, 0, wx.LEFT | wx.RIGHT, 10)
 
         # System prompt
         # Translators: Label for system prompt section
@@ -334,6 +368,10 @@ class ClaudeDialog(wx.Dialog):
         self._video_btn = wx.Button(panel, label=_("Attach &Video..."))
         button_sizer.Add(self._video_btn, 0, wx.RIGHT, 5)
 
+        # Translators: Button to attach a PDF document
+        self._pdf_btn = wx.Button(panel, label=_("Attach P&DF..."))
+        button_sizer.Add(self._pdf_btn, 0, wx.RIGHT, 5)
+
         # Translators: Button to clear conversation
         self._clear_btn = wx.Button(panel, label=_("&Clear"))
         button_sizer.Add(self._clear_btn, 0, wx.RIGHT, 5)
@@ -356,6 +394,7 @@ class ClaudeDialog(wx.Dialog):
         self._send_btn.Bind(wx.EVT_BUTTON, self._on_send)
         self._image_btn.Bind(wx.EVT_BUTTON, self._on_attach_image)
         self._video_btn.Bind(wx.EVT_BUTTON, self._on_attach_video)
+        self._pdf_btn.Bind(wx.EVT_BUTTON, self._on_attach_pdf)
         self._clear_btn.Bind(wx.EVT_BUTTON, self._on_clear)
         self._copy_btn.Bind(wx.EVT_BUTTON, self._on_copy_response)
         self._close_btn.Bind(wx.EVT_BUTTON, self._on_close)
@@ -494,6 +533,7 @@ class ClaudeDialog(wx.Dialog):
             and not self._pending_images
             and not self._pending_videos
             and not self._pending_video_frames
+            and not self._pending_documents
         ):
             return
 
@@ -514,42 +554,25 @@ class ClaudeDialog(wx.Dialog):
         model_idx = self._model_choice.GetSelection()
         model = CLAUDE_MODELS[model_idx]
         provider = get_safe_conf()["authProvider"]
-        resolved_id = model.resolve_id(provider)
+        conversation_mode = get_safe_conf()["conversationMode"]
 
-        # Collect conversation history as Anthropic messages
+        # Collect conversation history as Anthropic messages. It is rebuilt the
+        # same way every turn, so the previous turn's prefix is read from cache.
         messages = []
 
-        if get_safe_conf()["conversationMode"]:
+        if conversation_mode:
             for block in self._history:
-                content_parts = []
-                for img_path in block.images:
-                    if isinstance(img_path, str):
-                        part = _encode_image(img_path)
-                        if part:
-                            content_parts.append(part)
-                for frame_path in block.video_frames:
-                    if isinstance(frame_path, str):
-                        part = _encode_image(frame_path)
-                        if part:
-                            content_parts.append(part)
-                if block.text:
-                    content_parts.append({"type": "text", "text": block.text})
-
+                content_parts = _content_parts(block.images, block.video_frames, block.documents, block.text)
                 if content_parts:
                     messages.append({"role": block.role, "content": content_parts})
 
         # Build current message content
-        current_parts = []
-        for img_path in self._pending_images:
-            part = _encode_image(img_path)
-            if part:
-                current_parts.append(part)
-        for frame_path in self._pending_video_frames:
-            part = _encode_image(frame_path)
-            if part:
-                current_parts.append(part)
-        if prompt:
-            current_parts.append({"type": "text", "text": prompt})
+        current_parts = _content_parts(
+            self._pending_images,
+            self._pending_video_frames,
+            self._pending_documents,
+            prompt,
+        )
 
         if not current_parts:
             # Nothing to actually send
@@ -564,6 +587,7 @@ class ClaudeDialog(wx.Dialog):
             prompt,
             self._pending_images.copy(),
             self._pending_video_frames.copy(),
+            self._pending_documents.copy(),
         )
         self._history.append(user_block)
         self._update_history_display()
@@ -586,6 +610,7 @@ class ClaudeDialog(wx.Dialog):
         self._prompt_text.SetValue("")
         self._pending_images.clear()
         self._pending_video_frames.clear()
+        self._pending_documents.clear()
         self._update_attachment_label()
 
         # Disable send button
@@ -596,16 +621,30 @@ class ClaudeDialog(wx.Dialog):
             self._play_sound(SND_CHAT_REQUEST_SENT)
 
         system_prompt = self._system_text.GetValue().strip()
+        tools = None
+        if self._web_search_checkbox.IsEnabled() and self._web_search_checkbox.GetValue():
+            tools = [apirequest.web_search_tool(model)]
+            system_prompt = "\n\n".join(
+                part for part in (system_prompt, apirequest.web_search_system_note()) if part
+            )
+
+        request_kwargs, betas = apirequest.build_request(
+            model,
+            provider,
+            messages,
+            max_tokens=min(get_safe_conf()["maxOutputTokens"], model.max_output_tokens),
+            effort=get_safe_conf()["effort"],
+            system=system_prompt,
+            tools=tools,
+            cache=conversation_mode,
+        )
 
         # Start completion thread
         self._current_thread = CompletionThread(
             notify_window=self,
             client=self._client,
-            model_id=resolved_id,
-            messages=messages,
-            system_prompt=system_prompt,
-            max_tokens=min(get_safe_conf()["maxOutputTokens"], model.max_output_tokens),
-            temperature=get_safe_conf()["temperature"] if model.sampling else None,
+            request_kwargs=request_kwargs,
+            betas=betas,
             stream=get_safe_conf()["stream"],
         )
         self._current_thread.start()
@@ -621,6 +660,8 @@ class ClaudeDialog(wx.Dialog):
             # Stop pending sound
             winsound.PlaySound(None, winsound.SND_PURGE)
 
+            # Speak what had already streamed in before the error.
+            self._flush_streamed_speech()
             # Translators: Error message prefix
             error_msg = _("Error: {error}").format(error=data["error"])
             ui.message(error_msg)
@@ -636,15 +677,16 @@ class ClaudeDialog(wx.Dialog):
                 self._history.append(HistoryBlock("assistant", data["chunk"]))
             self._update_history_display()
 
-            # Speak streaming chunk immediately
+            # Speak whole sentences only: chunks are a few words each, and
+            # speaking each one separately puts a pause after every chunk.
             if get_safe_conf()["feedback"]["speechResponseReceived"]:
-                chunk_text = data["chunk"]
-                if chunk_text:
-                    # Apply markdown filter if enabled
-                    if get_safe_conf()["filterMarkdown"]:
-                        chunk_text = filter_markdown(chunk_text)
-                    if chunk_text.strip():  # Only speak non-empty chunks
-                        self._speak_long_text(chunk_text)
+                self._speech_buffer += data["chunk"]
+                boundary = None
+                for match in _SENTENCE_END.finditer(self._speech_buffer):
+                    boundary = match.end()
+                if boundary:
+                    self._speak_reply_text(self._speech_buffer[:boundary])
+                    self._speech_buffer = self._speech_buffer[boundary:]
 
             # Track that we received streaming chunks
             self._received_streaming_chunks = True
@@ -656,12 +698,17 @@ class ClaudeDialog(wx.Dialog):
 
             # Final response
             was_streaming = getattr(self, '_received_streaming_chunks', False)
+            self._flush_streamed_speech()
             if "text" in data:
                 if self._history and self._history[-1].role == "assistant":
                     # Already accumulated from streaming
                     pass
                 else:
                     self._history.append(HistoryBlock("assistant", data["text"]))
+            if data.get("sources") and self._history and self._history[-1].role == "assistant":
+                # Listed in the conversation for reading and copying, not spoken:
+                # read with Alt+1.
+                self._history[-1].text += "\n\n" + data["sources"]
 
             self._update_history_display()
             self._send_btn.Enable()
@@ -672,13 +719,7 @@ class ClaudeDialog(wx.Dialog):
 
             # Announce response (only if not streaming, since we already spoke chunks)
             if get_safe_conf()["feedback"]["speechResponseReceived"] and not was_streaming:
-                response_text = self._history[-1].text if self._history else ""
-                if response_text:
-                    # Apply markdown filter if enabled
-                    if get_safe_conf()["filterMarkdown"]:
-                        response_text = filter_markdown(response_text)
-                    # Split into paragraphs to avoid speech synth buffer limits
-                    self._speak_long_text(response_text)
+                self._speak_reply_text(data.get("text", ""))
 
             # Update braille
             if get_safe_conf()["feedback"]["brailleAutoFocus"]:
@@ -712,6 +753,9 @@ class ClaudeDialog(wx.Dialog):
             if block.video_frames:
                 # Translators: Indicator for attached video frames
                 attachments.append(_("{count} video frame(s)").format(count=len(block.video_frames)))
+            if block.documents:
+                # Translators: Indicator for attached PDF documents
+                attachments.append(_("{count} PDF(s)").format(count=len(block.documents)))
 
             if attachments:
                 attachment_text = ", ".join(attachments)
@@ -757,8 +801,39 @@ class ClaudeDialog(wx.Dialog):
 
         dlg.Destroy()
 
+    def _on_attach_pdf(self, event):
+        # Translators: Title of PDF file selection dialog
+        dlg = wx.FileDialog(
+            self,
+            _("Select PDF"),
+            # Translators: File type filter in the PDF selection dialog
+            wildcard=_("PDF documents (*.pdf)|*.pdf"),
+            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE,
+        )
+
+        if dlg.ShowModal() == wx.ID_OK:
+            self.add_documents(dlg.GetPaths())
+
+        dlg.Destroy()
+
+    def add_documents(self, paths: list[str]):
+        """Queue PDFs for the next message, skipping any that are too large."""
+        for path in paths:
+            try:
+                size = os.path.getsize(path)
+            except OSError:
+                continue
+            if size > apirequest.MAX_PDF_BYTES:
+                ui.message(apirequest.pdf_too_large_message(path))
+                continue
+            self._pending_documents.append(path)
+        self._update_attachment_label()
+
     def _update_attachment_label(self):
         parts = []
+        if self._pending_documents:
+            # Translators: Label showing number of attached PDF documents
+            parts.append(_("{count} PDF(s)").format(count=len(self._pending_documents)))
         if self._pending_images:
             # Translators: Label showing number of attached images
             parts.append(_("{count} image(s)").format(count=len(self._pending_images)))
@@ -818,6 +893,7 @@ class ClaudeDialog(wx.Dialog):
         self._pending_images.clear()
         self._pending_videos.clear()
         self._pending_video_frames.clear()
+        self._pending_documents.clear()
         self._update_history_display()
         self._update_attachment_label()
         self._prompt_text.SetFocus()
@@ -860,6 +936,19 @@ class ClaudeDialog(wx.Dialog):
                 pass
 
         self.Destroy()
+
+    def _speak_reply_text(self, text: str):
+        """Speak part of Claude's reply, with markdown filtered if enabled."""
+        if get_safe_conf()["filterMarkdown"]:
+            text = filter_markdown(text)
+        if text.strip():
+            self._speak_long_text(text)
+
+    def _flush_streamed_speech(self):
+        """Speak whatever streamed text is still waiting for a sentence end."""
+        if self._speech_buffer:
+            self._speak_reply_text(self._speech_buffer)
+            self._speech_buffer = ""
 
     def _speak_long_text(self, text: str):
         """Speak text split into paragraphs to avoid speech synth buffer limits."""

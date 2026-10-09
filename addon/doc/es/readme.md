@@ -2,7 +2,7 @@
 
 ## Summary
 
-ClauVDA integrates Anthropic's Claude AI directly into NVDA, providing blind and visually impaired users with powerful AI assistance. The add-on supports the current Claude line-up — Opus 5, Sonnet 5, and Haiku 4.5 — for chat, image description, screen-recording analysis, and more. Both the direct Anthropic API and Amazon Bedrock (via bearer-token API keys) are supported as authentication providers.
+ClauVDA integrates Anthropic's Claude AI directly into NVDA, providing blind and visually impaired users with powerful AI assistance. The add-on supports the current Claude line-up — Haiku 5.5, Sonnet 5.5, Opus 5.5, and Fable 5.1 — for chat, image description, screen-recording analysis, and more. Both the direct Anthropic API and Amazon Bedrock (via bearer-token API keys) are supported as authentication providers.
 
 ## Features
 
@@ -12,10 +12,13 @@ ClauVDA integrates Anthropic's Claude AI directly into NVDA, providing blind and
 * **Video Analysis**: Record a short screen clip; Claude analyzes sampled frames
 * **Attach Images**: Attach images from files for AI description
 * **Conversation History**: Maintain context across multiple messages
-* **Multiple Models**: Choose between Opus, Sonnet, and Haiku
+* **Multiple Models**: Choose between Haiku, Sonnet, Opus, and Fable
 * **Two Auth Providers**: Anthropic API direct, or Amazon Bedrock bearer token
 * **Summarize Selection**: Select text and have Claude summarize the key points
-* **Customizable Settings**: Temperature, max tokens, streaming, and more
+* **PDF Summary and OCR**: Summarize a PDF, or read all its text with AI, including scanned pages
+* **Web Search**: Claude can look up current information and lists the pages it used
+* **Computer Use**: Claude operates the current window for you, or tests it with NVDA's speech
+* **Customizable Settings**: Reasoning effort, max tokens, streaming, and more
 
 ## Requirements
 
@@ -56,20 +59,27 @@ Keys for each provider are stored separately, encrypted at rest with Windows DPA
 | NVDA+V | Start/stop video recording for analysis |
 | NVDA+Shift+U | Summarize selected text |
 | NVDA+Shift+H | Summarize the last spoken text |
+| NVDA+Shift+P | Summarize a PDF |
+| NVDA+Alt+P | Read all the text of a PDF with AI (OCR) |
+| NVDA+Alt+Shift+C | Open computer use for the current window |
+| NVDA+Alt+X | Pause a running computer use task to guide Claude |
 
 ## Using the Claude Dialog
 
 When you open the Claude dialog with NVDA+G:
 
 1. **Model**: Select which Claude model to use
-2. **System Prompt**: Optional instructions on how Claude should respond
-3. **History**: View the conversation history
-4. **Message**: Type your message or question
-5. **Send**: Send your message to Claude
-6. **Attach Image**: Add an image file for Claude to analyze
-7. **Attach Video**: Add a video; frames are sampled and sent as images
-8. **Clear**: Clear the conversation history
-9. **Copy Response**: Copy the last response to the clipboard
+2. **Let Claude search the web**: Allow web searches for current information (Anthropic API only).
+   Cited pages are listed under the reply in the history; they are not read aloud.
+3. **System Prompt**: Optional instructions on how Claude should respond
+4. **History**: View the conversation history
+5. **Message**: Type your message or question
+6. **Send**: Send your message to Claude
+7. **Attach Image**: Add an image file for Claude to analyze
+8. **Attach Video**: Add a video; frames are sampled and sent as images
+9. **Attach PDF**: Add PDF documents (up to 20 MB each) to ask questions about them
+10. **Clear**: Clear the conversation history
+11. **Copy Response**: Copy the last response to the clipboard
 
 ### Dialog Tips
 
@@ -84,11 +94,13 @@ Access settings via NVDA menu > Preferences > Settings > Claude AI:
 * **API provider**: Anthropic direct or Amazon Bedrock
 * **AWS region**: Bedrock region (ignored when using the Anthropic API directly)
 * **Default Model**: Claude model to use by default
-* **Temperature (0-100)**: Response randomness (0 = focused, 100 = creative).
-  Applies to Haiku 4.5 only — Opus 5 and Sonnet 5 do not accept a temperature,
-  so the setting is ignored when one of them is selected.
 * **Maximum Output Tokens**: Maximum length of responses
-* **Stream Responses**: Display/speak responses as they arrive
+* **Reasoning effort for chat**: How much Claude thinks before answering in the dialog.
+  Lower is faster and cheaper; Medium is the default
+* **Reasoning effort for quick actions**: The same for summaries, PDF actions and video
+  analysis; Low (fastest) is the default
+* **Let Claude search the web in chat**: The default for the dialog's web search checkbox
+* **Stream Responses**: Display responses as they arrive, speaking each sentence once it is complete
 * **Conversation Mode**: Include chat history for context
 * **Remember System Prompt**: Save your custom system prompt
 * **Block Escape Key**: Prevent accidental dialog closure
@@ -102,11 +114,14 @@ Access settings via NVDA menu > Preferences > Settings > Claude AI:
 
 ## Available Models
 
-* **Claude Opus 5** — Most capable, 1M token context, extended thinking
-* **Claude Sonnet 5** — Balanced for everyday use, 1M token context, extended thinking
-* **Claude Haiku 4.5** — Fastest and cheapest, 200K token context
+* **Claude Haiku 5.5** (default) — Fastest and cheapest, 1M token context
+* **Claude Sonnet 5.5** — Balanced for everyday use, 1M token context
+* **Claude Opus 5.5** — For harder reasoning and long tasks, 1M token context
+* **Claude Fable 5.1** — Most capable and most expensive, 1M token context
 
-All three support image input.
+All four support image input and think before answering when a request needs it.
+Models chosen in an earlier version are moved to their successor on startup
+(Opus 5 to Opus 5.5, Sonnet 5 to Sonnet 5.5, Haiku 4.5 to Haiku 5.5).
 
 ## Image and Video Features
 
@@ -131,6 +146,41 @@ Claude doesn't accept video files directly, so the add-on samples a handful of f
 
 Select text in any application and have Claude summarize the key points.
 
+## PDF Features
+
+Select a PDF in File Explorer and press NVDA+Shift+P to summarize it, or NVDA+Alt+P to
+read all of its text with AI. Reading with AI also works on scanned pages and images
+of text, and keeps headings, lists and tables. If File Explorer isn't focused on a PDF,
+you are asked to choose one. The result opens in a window you can read with the
+arrow keys and copy. Both actions are also in the NVDA menu under Claude.
+
+## Computer Use
+
+Press NVDA+Alt+Shift+C in any window and type what you want done. Claude looks at
+screenshots of the screen and acts with the mouse and keyboard through NVDA, while
+you hear what it is doing. Computer use needs NVDA 2026.1 or later and the Anthropic
+API provider.
+
+* **Assistant mode**: Claude does a task for you, such as ticking a checkbox you can't
+  reach, then checks the result.
+* **Screen-reader testing mode**: Claude navigates with the keyboard and also hears what
+  NVDA announced after each action, then writes an accessibility report.
+
+Press NVDA+Alt+X to pause a running task. Type new guidance in the dialog and press
+Resume. When a task finishes, type a follow-up request and press Continue to keep the
+same context, or press New task to start over.
+
+Settings > Claude AI > Computer use sets the model, the reasoning effort, the maximum
+steps per task, the screenshot size, the delays after each action, and how many recent
+actions keep their screenshots once the task gets long.
+
+Claude can click and type anywhere on your screen. It is told not to delete data, send
+messages, buy things or change settings unless you asked, but watch what it does and
+press NVDA+Alt+X or Stop if it goes wrong.
+
+This replaces the separate Claude Computer Use add-on: uninstall that one, since both
+use NVDA+Alt+X.
+
 ## Troubleshooting
 
 ### "Anthropic SDK failed to load"
@@ -147,13 +197,13 @@ Increase the "Maximum Output Tokens" setting.
 
 ### Responses are too random
 
-Lower the Temperature setting. This has no effect on Opus 5 or Sonnet 5, which
-do not accept a temperature — ask for the tone you want in the prompt or the
-system prompt instead.
+Current Claude models do not accept a temperature setting. Ask for the tone you
+want in the prompt or the system prompt instead.
 
 ## Privacy Notice
 
-* Your messages, images, and video frames are sent to the selected provider (Anthropic or AWS Bedrock)
+* Your messages, images, PDFs, and video frames are sent to the selected provider (Anthropic or AWS Bedrock)
+* During computer use, screenshots of your whole screen are sent to Anthropic
 * API keys are stored locally, encrypted with Windows DPAPI
 * No data is shared with the add-on developer
 * Review the [Anthropic usage policies](https://www.anthropic.com/legal/aup) and/or your AWS Bedrock agreement for details

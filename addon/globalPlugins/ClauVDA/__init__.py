@@ -14,6 +14,7 @@ import api
 import speech
 import speechViewer
 import textInfos
+import winUser
 from scriptHandler import script
 from gui.settingsDialogs import SettingsPanel, NVDASettingsDialog
 from gui import guiHelper, nvdaControls
@@ -32,9 +33,13 @@ from .consts import (
     CLAUDE_MODELS,
     DEFAULT_MODEL,
     DEFAULT_SYSTEM_PROMPT,
+    EFFORT_LEVELS,
+    effort_index,
+    effort_labels,
 )
 from .configspec import confSpecs, get_safe_conf
 from . import apikeymanager
+from . import apirequest
 from . import videocapture
 
 # Clear any conflicting modules that might be loaded from NVDA or other addons.
@@ -84,6 +89,20 @@ except Exception as e:
         log.warning("anthropic SDK not found. Bundled libraries may be missing or corrupted.")
 
 
+PDF_SUMMARY = "summary"
+PDF_OCR = "ocr"
+PDF_OCR_MAX_TOKENS = 64000
+# Sent to the model with the PDF. Not translated: the transcription must stay
+# in the document's own language.
+PDF_OCR_INSTRUCTION = (
+    "Transcribe all of the text in this PDF exactly as written, in reading order. "
+    "Start each page with a line \"Page N\". Keep headings, paragraphs and list items "
+    "on their own lines, and write tables as plain-text rows with cells separated by \" | \". "
+    "For images, charts and diagrams, write a short description in square brackets. "
+    "Do not summarize, translate, correct or comment on the text."
+)
+
+
 def _resolve_bedrock_region(configured: str | None) -> str:
     """Pick the AWS region for Bedrock.
 
@@ -114,7 +133,9 @@ def _build_client():
     try:
         if provider == "bedrock":
             region = _resolve_bedrock_region(conf["bedrockRegion"])
-            return anthropic.AnthropicBedrock(
+            # Mantle is Bedrock's Messages API endpoint; the current models are
+            # served there under "anthropic.<model>" IDs.
+            return anthropic.AnthropicBedrockMantle(
                 api_key=api_key,
                 aws_region=region,
             )
@@ -302,16 +323,6 @@ class ClauVDASettingsPanel(SettingsPanel):
             self._bedrock_id_fields[m.id] = field
         sHelper.addItem(bedrock_group)
 
-        # Temperature
-        # Translators: Label for temperature setting
-        self._temp_spinner = sHelper.addLabeledControl(
-            _("&Temperature (0-100):"),
-            nvdaControls.SelectOnFocusSpinCtrl,
-            min=0,
-            max=100,
-        )
-        self._temp_spinner.SetValue(int(get_safe_conf()["temperature"] * 100))
-
         # Max output tokens
         # Translators: Label for max output tokens setting
         self._max_tokens_spinner = sHelper.addLabeledControl(
@@ -321,6 +332,30 @@ class ClauVDASettingsPanel(SettingsPanel):
             max=65536,
         )
         self._max_tokens_spinner.SetValue(get_safe_conf()["maxOutputTokens"])
+
+        # Reasoning effort
+        # Translators: Label for how much Claude thinks before answering in the chat dialog
+        self._effort_choice = sHelper.addLabeledControl(
+            _("Reasoning &effort for chat:"),
+            wx.Choice,
+            choices=effort_labels(),
+        )
+        self._effort_choice.SetSelection(effort_index(get_safe_conf()["effort"]))
+
+        # Translators: Label for how much Claude thinks for summaries and video analysis
+        self._quick_effort_choice = sHelper.addLabeledControl(
+            _("Reasoning effort for &quick actions (summaries, video):"),
+            wx.Choice,
+            choices=effort_labels(),
+        )
+        self._quick_effort_choice.SetSelection(effort_index(get_safe_conf()["quickEffort"]))
+
+        # Web search
+        # Translators: Checkbox letting Claude search the web from the chat dialog
+        self._web_search_checkbox = sHelper.addItem(
+            wx.CheckBox(self, label=_("Let Claude searc&h the web in chat (Anthropic API only)"))
+        )
+        self._web_search_checkbox.SetValue(get_safe_conf()["webSearch"])
 
         # Streaming
         # Translators: Checkbox for streaming responses
@@ -393,6 +428,8 @@ class ClauVDASettingsPanel(SettingsPanel):
         saved_summarize_speech_prompt = get_safe_conf()["summarizeSpeechPrompt"]
         self._summarize_speech_prompt_text.SetValue(saved_summarize_speech_prompt if saved_summarize_speech_prompt else self._default_summarize_speech_prompt)
 
+        self._make_computer_use_settings(sHelper)
+
         # Feedback section
         # Translators: Label for feedback settings group
         feedback_group = wx.StaticBoxSizer(
@@ -427,6 +464,66 @@ class ClauVDASettingsPanel(SettingsPanel):
 
         sHelper.addItem(feedback_group)
 
+    def _make_computer_use_settings(self, sHelper):
+        cu_conf = get_safe_conf()["computerUse"]
+        # Translators: Group label for computer use settings
+        cu_group = wx.StaticBoxSizer(wx.VERTICAL, self, label=_("Computer use"))
+        cu_box = cu_group.GetStaticBox()
+        cu_helper = guiHelper.BoxSizerHelper(self, sizer=cu_group)
+
+        # Translators: Label for the model that operates the computer
+        self._cu_model_choice = cu_helper.addLabeledControl(
+            _("Computer use mo&del:"),
+            wx.Choice,
+            choices=[m.name for m in CLAUDE_MODELS],
+        )
+        self._cu_model_choice.SetSelection(0)
+        for i, m in enumerate(CLAUDE_MODELS):
+            if m.id == cu_conf["model"]:
+                self._cu_model_choice.SetSelection(i)
+                break
+
+        # Translators: Label for how much Claude thinks during computer use
+        self._cu_effort_choice = cu_helper.addLabeledControl(
+            _("Computer use reasoning effor&t:"),
+            wx.Choice,
+            choices=effort_labels(),
+        )
+        self._cu_effort_choice.SetSelection(effort_index(cu_conf["effort"]))
+
+        spinners = (
+            # Translators: Label for the number of Claude turns before a computer use task pauses
+            ("maxSteps", _("Maximum steps per tas&k:"), 1, 200),
+            # Translators: Label for the output token limit of each computer use turn
+            ("maxTokens", _("Maximum tokens per step:"), 2048, 64000),
+            # Translators: Label for the size of the screenshots Claude sees
+            ("maxScreenshotEdge", _("Screenshot longest edge (pixels):"), 640, 2576),
+            # Translators: Label for the pause after each action before the next screenshot
+            ("actionDelay", _("Delay after each action (milliseconds):"), 0, 5000),
+            # Translators: Label for the extra wait used to capture NVDA's speech in testing mode
+            ("speechSettleDelay", _("Speech capture delay in testing mode (milliseconds):"), 0, 5000),
+            # Translators: Label for how many recent actions keep their results in context
+            ("keepActions", _("Recent actions to keep in context:"), 2, 50),
+        )
+        self._cu_spinners = {}
+        for key, label, minimum, maximum in spinners:
+            spinner = cu_helper.addLabeledControl(
+                label,
+                nvdaControls.SelectOnFocusSpinCtrl,
+                min=minimum,
+                max=maximum,
+            )
+            spinner.SetValue(cu_conf[key])
+            self._cu_spinners[key] = spinner
+
+        # Translators: Checkbox letting Claude zoom into part of the screen during computer use
+        self._cu_zoom_checkbox = cu_helper.addItem(
+            wx.CheckBox(cu_box, label=_("Allow Claude to &zoom in for detail"))
+        )
+        self._cu_zoom_checkbox.SetValue(cu_conf["enableZoom"])
+
+        sHelper.addItem(cu_group)
+
     def _open_key_dialog(self, provider: str):
         key_manager = apikeymanager.get_manager(DATA_DIR)
         dlg = APIKeyDialog(self, key_manager, provider)
@@ -450,8 +547,10 @@ class ClauVDASettingsPanel(SettingsPanel):
             get_safe_conf()["bedrockModelOverrides"][model_id] = field.GetValue().strip()
 
         # Parameters
-        get_safe_conf()["temperature"] = self._temp_spinner.GetValue() / 100.0
         get_safe_conf()["maxOutputTokens"] = self._max_tokens_spinner.GetValue()
+        get_safe_conf()["effort"] = EFFORT_LEVELS[self._effort_choice.GetSelection()]
+        get_safe_conf()["quickEffort"] = EFFORT_LEVELS[self._quick_effort_choice.GetSelection()]
+        get_safe_conf()["webSearch"] = self._web_search_checkbox.GetValue()
         get_safe_conf()["stream"] = self._stream_checkbox.GetValue()
         get_safe_conf()["conversationMode"] = self._convo_checkbox.GetValue()
         get_safe_conf()["saveSystemPrompt"] = self._save_prompt_checkbox.GetValue()
@@ -478,6 +577,14 @@ class ClauVDASettingsPanel(SettingsPanel):
             get_safe_conf()["summarizeSpeechPrompt"] = ""
         else:
             get_safe_conf()["summarizeSpeechPrompt"] = summarize_speech_prompt_val
+
+        # Computer use
+        cu_conf = get_safe_conf()["computerUse"]
+        cu_conf["model"] = CLAUDE_MODELS[self._cu_model_choice.GetSelection()].id
+        cu_conf["effort"] = EFFORT_LEVELS[self._cu_effort_choice.GetSelection()]
+        for key, spinner in self._cu_spinners.items():
+            cu_conf[key] = spinner.GetValue()
+        cu_conf["enableZoom"] = self._cu_zoom_checkbox.GetValue()
 
         # Feedback
         get_safe_conf()["feedback"]["soundRequestSent"] = (
@@ -608,6 +715,15 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         if self._video_capture and self._video_capture.is_recording:
             self._video_capture.stop()
 
+        # Stop computer use, if it was ever loaded
+        cu_package = __name__ + ".computeruse"
+        if cu_package + ".agent" in sys.modules:
+            from .computeruse import agent as cu_agent, dialog as cu_dialog, speechcapture
+
+            cu_agent.stop_active_session()
+            speechcapture.unregister()
+            cu_dialog.ComputerUseDialog.close_instance()
+
         # Remove settings panel
         try:
             NVDASettingsDialog.categoryClasses.remove(ClauVDASettingsPanel)
@@ -632,6 +748,25 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             wx.EVT_MENU, self._on_show_dialog, dialog_item
         )
 
+        # Translators: Menu item to open the computer use dialog
+        cu_item = self._menu.Append(wx.ID_ANY, _("Computer &use...\tNVDA+Alt+Shift+C"))
+        gui.mainFrame.sysTrayIcon.Bind(wx.EVT_MENU, self._on_computer_use_menu, cu_item)
+
+        # Translators: Menu item to summarize a PDF
+        pdf_summary_item = self._menu.Append(wx.ID_ANY, _("Summari&ze PDF...\tNVDA+Shift+P"))
+        gui.mainFrame.sysTrayIcon.Bind(
+            wx.EVT_MENU,
+            lambda evt: self._pdf_action(PDF_SUMMARY, _window_before_menu()),
+            pdf_summary_item,
+        )
+        # Translators: Menu item to read all the text of a PDF with AI
+        pdf_ocr_item = self._menu.Append(wx.ID_ANY, _("&Read PDF text with AI (OCR)...\tNVDA+Alt+P"))
+        gui.mainFrame.sysTrayIcon.Bind(
+            wx.EVT_MENU,
+            lambda evt: self._pdf_action(PDF_OCR, _window_before_menu()),
+            pdf_ocr_item,
+        )
+
         self._menu.AppendSeparator()
 
         # Translators: Menu item to open settings
@@ -653,6 +788,10 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
     def _on_show_dialog(self, event):
         """Open the main Claude dialog."""
         self._show_dialog()
+
+    def _on_computer_use_menu(self, event):
+        """Open computer use for the window that had focus before the NVDA menu."""
+        self._open_computer_use(_window_before_menu())
 
     def _on_show_settings(self, event):
         """Open settings panel."""
@@ -922,11 +1061,8 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 
                 from .mdfilter import filter_markdown
 
-                model_id = get_safe_conf()["model"]
+                model = _selected_model()
                 provider = get_safe_conf()["authProvider"]
-                from .consts import get_model_by_id
-                model = get_model_by_id(model_id)
-                resolved_id = model.resolve_id(provider) if model else model_id
 
                 user_content = []
                 for fp in frame_paths:
@@ -946,13 +1082,16 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                     "text": f"{frame_note}\n\n{prompt_text}",
                 })
 
-                response = client.messages.create(
-                    model=resolved_id,
+                kwargs, betas = apirequest.build_request(
+                    model,
+                    provider,
+                    [{"role": "user", "content": user_content}],
                     max_tokens=_capped_max_tokens(model),
-                    messages=[{"role": "user", "content": user_content}],
+                    effort=get_safe_conf()["quickEffort"],
                 )
+                response = apirequest.create(client, kwargs, betas)
 
-                result_text = _extract_text(response) or _("No response from AI")
+                result_text = apirequest.one_shot_reply(response)
 
                 if get_safe_conf()["filterMarkdown"]:
                     result_text = filter_markdown(result_text)
@@ -1019,6 +1158,201 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             else:
                 # Translators: Error when video recording fails to start
                 ui.message(_("Failed to start recording"))
+
+    def _open_computer_use(self, target_hwnd: int):
+        """Open the computer use dialog, acting on ``target_hwnd``."""
+        if not ANTHROPIC_AVAILABLE:
+            ui.message(_("Anthropic SDK not installed."))
+            return
+        if get_safe_conf()["authProvider"] != "anthropic":
+            # Translators: Computer use is not offered for the Bedrock provider
+            ui.message(_("Computer use needs the Anthropic API provider. Change it in the Claude AI settings."))
+            return
+        client = self._get_client()
+        if not client:
+            ui.message(_(NO_API_KEY_MSG))
+            return
+        try:
+            from .computeruse.dialog import ComputerUseDialog
+        except ImportError:
+            log.error("Computer use could not be loaded", exc_info=True)
+            # Translators: Computer use relies on APIs added in NVDA 2026.1
+            ui.message(_("Computer use needs NVDA 2026.1 or later."))
+            return
+        from .consts import get_model_by_id
+
+        cu_conf = get_safe_conf()["computerUse"]
+        model = get_model_by_id(cu_conf["model"]) or get_model_by_id(DEFAULT_MODEL)
+        settings = {
+            key: cu_conf[key]
+            for key in (
+                "effort",
+                "maxSteps",
+                "maxTokens",
+                "maxScreenshotEdge",
+                "actionDelay",
+                "speechSettleDelay",
+                "keepActions",
+                "enableZoom",
+            )
+        }
+        wx.CallAfter(ComputerUseDialog.run, target_hwnd, client, model, settings)
+
+    @script(
+        # Translators: Description of the command that opens the computer use dialog
+        description=_("Open Claude computer use, to let Claude operate the current window"),
+        gesture="kb:NVDA+alt+shift+c",
+    )
+    def script_openComputerUse(self, gesture):
+        # Remember the active window before the dialog takes focus, so Claude
+        # acts on it rather than on the dialog.
+        self._open_computer_use(winUser.getForegroundWindow())
+
+    @script(
+        # Translators: Description of the command that pauses a running computer use task
+        description=_("Pause the running computer use task and open its dialog to guide Claude"),
+        gesture="kb:NVDA+alt+x",
+    )
+    def script_pauseComputerUse(self, gesture):
+        cu_package = __name__ + ".computeruse"
+        agent = sys.modules.get(cu_package + ".agent")
+        if agent is not None and agent.pause_active_session():
+            # Translators: Announced when the user pauses a computer use task
+            ui.message(_("Pausing the Claude task…"))
+        elif agent is not None and agent.is_session_paused():
+            from .computeruse.dialog import ComputerUseDialog
+
+            # Translators: Announced when the computer use task is already paused
+            ui.message(_("The Claude task is paused. Type guidance in the dialog, then resume."))
+            wx.CallAfter(ComputerUseDialog.surface)
+        else:
+            # Translators: Announced when no computer use task is running
+            ui.message(_("No Claude task is running."))
+
+    @script(
+        # Translators: Description of the command that summarizes a PDF
+        description=_("Summarize a PDF: the one selected in File Explorer, or one you choose"),
+        gesture="kb:NVDA+shift+p",
+    )
+    def script_summarizePdf(self, gesture):
+        self._pdf_action(PDF_SUMMARY, winUser.getForegroundWindow())
+
+    @script(
+        # Translators: Description of the command that extracts the text of a PDF with AI
+        description=_(
+            "Read all the text of a PDF with AI (OCR), including scanned pages: "
+            "the one selected in File Explorer, or one you choose"
+        ),
+        gesture="kb:NVDA+alt+p",
+    )
+    def script_ocrPdf(self, gesture):
+        self._pdf_action(PDF_OCR, winUser.getForegroundWindow())
+
+    def _pdf_action(self, kind: str, window: int):
+        """Run a PDF action on the PDF selected in ``window``, or ask for one."""
+        if not ANTHROPIC_AVAILABLE:
+            ui.message(_("Anthropic SDK not installed."))
+            return
+        client = self._get_client()
+        if not client:
+            ui.message(_(NO_API_KEY_MSG))
+            return
+        path = _explorer_selected_pdf(window)
+        if path:
+            self._run_pdf_task(client, kind, path)
+        else:
+            wx.CallAfter(self._choose_pdf_and_run, client, kind)
+
+    def _choose_pdf_and_run(self, client, kind: str):
+        gui.mainFrame.prePopup()
+        try:
+            dlg = wx.FileDialog(
+                gui.mainFrame,
+                # Translators: Title of PDF file selection dialog
+                _("Select PDF"),
+                # Translators: File type filter in the PDF selection dialog
+                wildcard=_("PDF documents (*.pdf)|*.pdf"),
+                style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
+            )
+            path = dlg.GetPath() if dlg.ShowModal() == wx.ID_OK else None
+            dlg.Destroy()
+        finally:
+            gui.mainFrame.postPopup()
+        if path:
+            self._run_pdf_task(client, kind, path)
+
+    def _run_pdf_task(self, client, kind: str, path: str):
+        """Summarize or transcribe a PDF on a background thread and show the result."""
+        import threading
+        from .mdfilter import filter_markdown
+
+        name = os.path.basename(path)
+        try:
+            too_large = os.path.getsize(path) > apirequest.MAX_PDF_BYTES
+        except OSError:
+            too_large = False
+        if too_large:
+            ui.message(apirequest.pdf_too_large_message(path))
+            return
+        if kind == PDF_SUMMARY:
+            # Translators: Announced while Claude summarizes a PDF. {name} is the file name
+            ui.message(_("Summarizing {name}...").format(name=name))
+            # Translators: Request sent to Claude with a PDF; translated so the summary
+            # comes back in the user's language
+            instruction = _(
+                "Summarize this PDF. Start with one sentence saying what kind of document it is, "
+                "then give its key points. Write the summary in the language of this request."
+            )
+            # Translators: Title of the window showing a PDF summary. {name} is the file name
+            title = _("Summary of {name}").format(name=name)
+        else:
+            # Translators: Announced while Claude reads the text of a PDF. {name} is the file name
+            ui.message(_("Reading the text of {name}. Long documents can take a while.").format(name=name))
+            instruction = PDF_OCR_INSTRUCTION
+            # Translators: Title of the window showing the text read from a PDF. {name} is the file name
+            title = _("Text of {name}").format(name=name)
+
+        model = _selected_model()
+        provider = get_safe_conf()["authProvider"]
+
+        def do_task():
+            try:
+                document = apirequest.pdf_block(path)
+                if document is None:
+                    # Translators: Error when a PDF can't be read from disk
+                    wx.CallAfter(ui.message, _("Could not read {name}").format(name=name))
+                    return
+                if kind == PDF_SUMMARY:
+                    max_tokens = _capped_max_tokens(model)
+                else:
+                    # A transcription is as long as the document.
+                    max_tokens = min(PDF_OCR_MAX_TOKENS, model.max_output_tokens)
+                kwargs, betas = apirequest.build_request(
+                    model,
+                    provider,
+                    [{"role": "user", "content": [document, {"type": "text", "text": instruction}]}],
+                    max_tokens=max_tokens,
+                    effort=get_safe_conf()["quickEffort"],
+                )
+                # Streamed, because a long transcription outlasts a plain request's timeout.
+                with apirequest.stream(client, kwargs, betas) as stream:
+                    response = stream.get_final_message()
+                if apirequest.is_refusal(response):
+                    wx.CallAfter(ui.message, apirequest.refusal_message())
+                    return
+                text = apirequest.one_shot_reply(response)
+                if kind == PDF_SUMMARY and get_safe_conf()["filterMarkdown"]:
+                    text = filter_markdown(text)
+                if response.stop_reason == "max_tokens":
+                    # Translators: Added to a PDF result that hit the output limit
+                    text += "\n\n" + _("[The result was cut off because it reached the output limit.]")
+                wx.CallAfter(_show_result, title, text)
+            except Exception as e:
+                log.error(f"PDF task failed: {e}", exc_info=True)
+                # Translators: Error while summarizing or reading a PDF
+                wx.CallAfter(ui.message, _("PDF request failed: {error}").format(error=str(e)))
+
+        threading.Thread(target=do_task, daemon=True).start()
 
     @script(
         # Translators: Description for summarize selection script
@@ -1096,23 +1430,23 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
     def _run_summarize(self, client, prompt: str, text: str):
         """Run a one-shot summarization request on a background thread."""
         import threading
-        from .consts import get_model_by_id
         from .mdfilter import filter_markdown
 
-        model_id = get_safe_conf()["model"]
+        model = _selected_model()
         provider = get_safe_conf()["authProvider"]
-        model = get_model_by_id(model_id)
-        resolved_id = model.resolve_id(provider) if model else model_id
         full_prompt = f"{prompt}\n\n{text}"
 
         def do_summarize():
             try:
-                response = client.messages.create(
-                    model=resolved_id,
+                kwargs, betas = apirequest.build_request(
+                    model,
+                    provider,
+                    [{"role": "user", "content": full_prompt}],
                     max_tokens=_capped_max_tokens(model),
-                    messages=[{"role": "user", "content": full_prompt}],
+                    effort=get_safe_conf()["quickEffort"],
                 )
-                result_text = _extract_text(response) or _("No response from AI")
+                response = apirequest.create(client, kwargs, betas)
+                result_text = apirequest.one_shot_reply(response)
 
                 if get_safe_conf()["filterMarkdown"]:
                     result_text = filter_markdown(result_text)
@@ -1130,21 +1464,59 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         thread.start()
 
 
+def _window_before_menu() -> int:
+    """Top-level window that had focus before the NVDA menu opened, or 0.
+
+    From a menu item, the foreground window is NVDA's own menu; NVDA remembers
+    the object that had focus before it opened.
+    """
+    prev_focus = getattr(gui.mainFrame, "prevFocus", None)
+    hwnd = getattr(prev_focus, "windowHandle", 0) if prev_focus else 0
+    return winUser.getAncestor(hwnd, winUser.GA_ROOT) if hwnd else 0
+
+
+def _explorer_selected_pdf(window: int) -> str | None:
+    """Path of the PDF focused in the File Explorer window ``window``, if any."""
+    if not window:
+        return None
+    try:
+        import comtypes.client
+
+        shell = comtypes.client.CreateObject("Shell.Application")
+        for explorer in shell.Windows():
+            try:
+                if explorer.HWND != window:
+                    continue
+                item = explorer.Document.FocusedItem
+                path = item.Path if item is not None else None
+            except Exception:
+                continue
+            if path and path.lower().endswith(".pdf") and os.path.isfile(path):
+                return path
+    except Exception:
+        log.debugWarning("Could not read the File Explorer selection", exc_info=True)
+    return None
+
+
+def _show_result(title: str, text: str):
+    """Show a long result in a browseable window the user can read and copy."""
+    try:
+        ui.browseableMessage(text, title, closeButton=True, copyButton=True)
+    except TypeError:
+        # NVDA before 2025.1 has no button options.
+        ui.browseableMessage(text, title)
+
+
+def _selected_model():
+    """The default model from the settings, or DEFAULT_MODEL if it is unknown."""
+    from .consts import get_model_by_id
+
+    return get_model_by_id(get_safe_conf()["model"]) or get_model_by_id(DEFAULT_MODEL)
+
+
 def _capped_max_tokens(model) -> int:
     """Clamp the configured output limit to what the model actually allows."""
-    configured = get_safe_conf()["maxOutputTokens"]
-    if model is None:
-        return configured
-    return min(configured, model.max_output_tokens)
-
-
-def _extract_text(response) -> str:
-    """Join text blocks from a Claude Message response."""
-    parts = []
-    for block in getattr(response, "content", []) or []:
-        if getattr(block, "type", None) == "text":
-            parts.append(block.text)
-    return "".join(parts)
+    return min(get_safe_conf()["maxOutputTokens"], model.max_output_tokens)
 
 
 def _encode_image_for_claude(path: str) -> dict | None:
